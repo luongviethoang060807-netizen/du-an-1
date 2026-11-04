@@ -1,0 +1,52 @@
+import axios from 'axios'
+import { getToken, clearAuthSession } from './auth'
+
+const getApiBaseUrl = () => {
+  const { origin, pathname } = window.location
+
+  if (pathname.includes('/du-an-1')) {
+    return `${origin}/du-an-1/BE`
+  }
+
+  return `${origin}/BE`
+}
+
+const api = axios.create({
+  baseURL: getApiBaseUrl(),
+  timeout: 20000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+api.interceptors.request.use(
+  (config) => {
+    const token = getToken()
+
+    if (token) {
+      config.headers = config.headers || {}
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      clearAuthSession()
+
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    }
+
+    console.error('API Error:', error.response?.data || error.message)
+    return Promise.reject(error)
+  }
+)
+
+export default api

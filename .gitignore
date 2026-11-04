@@ -1,0 +1,66 @@
+# Node / Vite
+node_modules/
+**/node_modules/
+FE/dist/
+FE/.vite/
+FE/.cache/
+
+# Build outputs
+build/
+dist/
+out/
+coverage/
+
+# PHP / backend dependency and cache
+BE/vendor/
+BE/cache/
+BE/public/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+.env.local
+.env.*.local
+FE/.env
+FE/.env.*
+FE/.env.local
+BE/configs/.env
+BE/configs/env.php
+
+# Temporary files
+*.tmp
+*.temp
+cache/
+.tmp/
+.temp/
+
+# Composer (keep project setup files if needed)
+composer.phar
+# composer.lock có thể giữ lại nếu bạn muốn lock dependencies
+
+# Uploads / generated files
+BE/assets/uploads/*
+!BE/assets/uploads/.gitkeep
+
+# PHP generated caches
+*.cache
+
+# Documentation files should stay tracked
+# README.md
+# AUTH_README.md
