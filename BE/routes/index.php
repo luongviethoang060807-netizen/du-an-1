@@ -36,6 +36,11 @@ switch ($action) {
         (new ProductController)->index();
         break;
 
+    // API test cho thằng mặt cặc Hoàng Vinh
+    case 'api-guns':
+        (new GunController)->index();
+        break;
+
     default:
         // Xử lý khi không khớp route nào (404 Not Found)
         http_response_code(404);
