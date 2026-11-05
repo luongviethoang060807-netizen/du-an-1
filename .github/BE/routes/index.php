@@ -32,7 +32,6 @@ switch ($action) {
         break;
 
     case 'api-products':
-        (new AuthMiddleware())->requireAuth();
         (new ProductController)->index();
         break;
 
