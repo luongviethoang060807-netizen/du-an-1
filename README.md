@@ -71,14 +71,26 @@ du-an-1/
 
 ## Cách chạy dự án
 
-### 1. Backend
+### 1. Cập nhật database
+
+Đảm bảo MySQL đang chạy trong Laragon, sau đó mở PowerShell tại thư mục gốc dự án và chạy lệnh duy nhất:
+
+```powershell
+Get-Content -Raw .\BE\database\create_database.sql | mysql --host=localhost --port=3306 --user=root
+```
+
+File [BE/database/create_database.sql](BE/database/create_database.sql) là file SQL duy nhất cho backend. Nó tạo database `du-an-1`, các bảng `users`, `categories`, `products` và dữ liệu sản phẩm mẫu. Cấu hình kết nối mặc định là `localhost:3306`, user `root`, mật khẩu trống, khớp với `BE/configs/env.php`. Máy cần có lệnh `mysql` trong `PATH` (có thể mở terminal từ Laragon nếu PowerShell không nhận lệnh). Không cần import bằng phpMyAdmin.
+
+Khi có thay đổi cấu trúc hoặc dữ liệu khởi tạo, cập nhật file SQL duy nhất này rồi chạy lại cùng lệnh. Các lệnh tạo bảng và thêm dữ liệu mẫu được viết để có thể chạy lặp lại. Nếu MySQL có mật khẩu, thêm `--password` để MySQL hỏi mật khẩu khi chạy.
+
+### 2. Backend
 Mở bằng Laragon hoặc local PHP server:
 
 ```text
 http://localhost/du-an-1/BE/
 ```
 
-### 2. Frontend
+### 3. Frontend
 ```bash
 cd FE
 npm install

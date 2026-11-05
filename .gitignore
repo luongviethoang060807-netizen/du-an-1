@@ -35,13 +35,16 @@ Thumbs.db
 # Environment files
 .env
 .env.*
+!.env.example
+!.env.production
 .env.local
 .env.*.local
 FE/.env
 FE/.env.*
+!FE/.env.example
+!FE/.env.production
 FE/.env.local
 BE/configs/.env
-BE/configs/env.php
 
 # Temporary files
 *.tmp
