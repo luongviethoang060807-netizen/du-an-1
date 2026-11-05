@@ -31,4 +31,25 @@ class ProductController{
         ]);
     }
 
+    //test mock data
+
+    public function camChim(){
+        $camChims = [
+            [
+                'id' => 1,
+                'name' => 'Trần Hà Linh',
+                'image' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWRUgFJDVfIftWG6y8iggQuPYJSg0kP8FpqSuxMKGu4OD708czJy5mX9gF&s=10'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Linh Tây',
+                'image' => 'https://benhvienthammysiamthailand.vn/wp-content/uploads/2024/04/1-copy-7-1.jpg'  
+            ]
+        ];
+        response_json([
+            'status' => 'success',
+            'camChims' => $camChims
+        ]);
+    }
+
 }
