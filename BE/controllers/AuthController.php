@@ -1,20 +1,29 @@
 /**
  * AuthController
+ * VibeCoder: Long
  *
  * Chịu trách nhiệm xử lý auth API cho hệ thống.
- * Hiện tại đang dùng login demo đơn giản để kiểm tra JWT flow, trước khi gắn
- * logic thật với bảng users trong database.
  */
 <?php
 
 class AuthController
 {
+    private User $userModel;
+
+    /**
+     * Khởi tạo controller và model user để dùng trong các hàm xác thực.
+     */
+    public function __construct()
+    {
+        $this->userModel = new User();
+    }
+
     /**
      * API đăng nhập.
      *
      * 1. Đọc dữ liệu JSON từ request body
      * 2. Validate email/password
-     * 3. Kiểm tra tài khoản hợp lệ
+        * 3. Kiểm tra tài khoản trong cơ sở dữ liệu bằng $userModel->authenticate()
      * 4. Tạo JWT bằng jwt_sign()
      * 5. Trả token về cho client
      *
@@ -35,15 +44,9 @@ class AuthController
             return;
         }
 
-        // Demo user chỉ để test middleware JWT trước khi link DB thật.
-        $demoUser = [
-            'email' => 'admin@example.com',
-            'password' => '123456',
-            'role' => 'admin',
-            'id' => 1,
-        ];
+        $user = $this->userModel->authenticate($email, $password);
 
-        if ($email !== $demoUser['email'] || $password !== $demoUser['password']) {
+        if ($user === false) {
             http_response_code(401);
             response_json([
                 'status' => 'error',
@@ -53,9 +56,9 @@ class AuthController
         }
 
         $token = jwt_sign([
-            'sub' => $demoUser['id'],
-            'email' => $demoUser['email'],
-            'role' => $demoUser['role'],
+            'sub' => $user['id'],
+            'email' => $user['email'],
+            'role' => $user['role'],
         ]);
 
         response_json([
@@ -63,9 +66,9 @@ class AuthController
             'message' => 'Đăng nhập thành công',
             'token' => $token,
             'user' => [
-                'id' => $demoUser['id'],
-                'email' => $demoUser['email'],
-                'role' => $demoUser['role'],
+                'id' => $user['id'],
+                'email' => $user['email'],
+                'role' => $user['role'],
             ]
         ]);
     }

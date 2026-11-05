@@ -2,10 +2,16 @@ import axios from 'axios'
 import { getToken, clearAuthSession } from './auth'
 
 const getApiBaseUrl = () => {
-  const { origin, pathname } = window.location
+  const { origin, hostname, pathname, port } = window.location
 
   if (pathname.includes('/du-an-1')) {
     return `${origin}/du-an-1/BE`
+  }
+
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    if (port === '5173' || port === '5174' || port === '4173') {
+      return 'http://localhost/du-an-1/BE'
+    }
   }
 
   return `${origin}/BE`
