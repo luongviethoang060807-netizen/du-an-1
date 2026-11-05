@@ -41,6 +41,10 @@ switch ($action) {
         (new GunController)->index();
         break;
 
+    case 'api-camchim':
+        (new ProductController)->camChim();
+        break;
+
     default:
         // Xử lý khi không khớp route nào (404 Not Found)
         http_response_code(404);
