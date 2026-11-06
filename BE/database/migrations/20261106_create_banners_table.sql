@@ -1,0 +1,12 @@
+USE `du-an-1`;
+
+CREATE TABLE IF NOT EXISTS `banners` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(255) NOT NULL,
+  `image` VARCHAR(255) DEFAULT NULL,
+  `content` TEXT NOT NULL,
+  `CTA_link` VARCHAR(2048) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
