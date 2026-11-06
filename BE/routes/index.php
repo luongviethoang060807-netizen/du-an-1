@@ -32,9 +32,14 @@ switch ($action) {
         break;
 
     case 'api-products':
-        (new AuthMiddleware())->requireAuth();
+        // (new AuthMiddleware())->requireAuth();
         (new ProductController)->index();
         break;
+
+    // API lấy danh sách danh mục sản phẩm
+    case 'api-categories':
+    (new CategoryController)->index();
+    break;
 
     // API test cho thằng mặt cặc Hoàng Vinh
     case 'api-guns':
