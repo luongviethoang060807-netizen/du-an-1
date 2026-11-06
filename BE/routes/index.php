@@ -66,6 +66,11 @@ switch ($action) {
     (new CategoryController)->index();
     break;
 
+    // API lấy danh sách banner
+    case 'api-banners':
+        (new BannerController)->index();
+        break;
+
     // API test cho thằng mặt cặc Hoàng Vinh
     case 'api-guns':
         (new GunController)->index();
