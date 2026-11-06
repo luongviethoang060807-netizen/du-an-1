@@ -34,6 +34,10 @@ switch ($action) {
         (new AuthController)->resetPassword();
         break;
 
+    case 'reset-password-bridge':
+        (new AuthController)->showPasswordResetBridge();
+        break;
+
     case 'api-change-password':
         // Middleware kiểm tra Bearer JWT và trả payload đã xác minh; claim `sub` là ID user.
         $authPayload = (new AuthMiddleware())->requireAuth();

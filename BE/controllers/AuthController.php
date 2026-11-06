@@ -1,10 +1,11 @@
-/**
- * AuthController
- * VibeCoder: Long
- *
- * Chịu trách nhiệm xử lý auth API cho hệ thống.
- */
 <?php
+
+// /**
+//  * AuthController
+//  * VibeCoder: Long
+//  *
+//  * Chịu trách nhiệm xử lý auth API cho hệ thống.
+//  */
 
 class AuthController
 {
@@ -207,6 +208,28 @@ class AuthController
     }
 
     /** Đổi mật khẩu cho người dùng đã đăng nhập sau khi xác minh mật khẩu hiện tại. */
+        /** Hiển thị trang cầu nối sau khi xác minh token reset từ email. */
+        public function showPasswordResetBridge(): void
+        {
+            $token = $_GET['token'] ?? '';
+            $isValid = is_string($token)
+                && preg_match('/^[a-f0-9]{64}$/', $token) === 1
+                && $this->userModel->isPasswordResetTokenValid(hash('sha256', $token));
+
+            $continueUrl = $isValid
+                ? FRONTEND_URL . '/reset-password?token=' . rawurlencode($token)
+                : FRONTEND_URL . '/forgot-password';
+
+            if (!$isValid) {
+                http_response_code(400);
+            }
+
+            header('Content-Type: text/html; charset=UTF-8');
+            header('Cache-Control: no-store, private');
+            require PATH_VIEW . 'auth/password_reset_bridge.php';
+        }
+
+        /** Đổi mật khẩu cho người dùng đã đăng nhập sau khi xác minh mật khẩu hiện tại. */
     public function changePassword(array $authPayload): void
     {
         if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {

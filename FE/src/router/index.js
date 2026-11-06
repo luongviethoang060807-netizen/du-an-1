@@ -4,9 +4,11 @@ import HomeView from "../views/HomeView.vue";
 import TestView from "../views/TestView.vue";
 import LoginView from "../views/auth/Login.vue";
 import { isAuthenticated } from "@/services/auth";
-
-// [note:] phần profile do front-end dev chưa làm xong nên tạm thời comment lại, khi nào làm xong thì bỏ comment ra
-// import Profile from '../views/auth/Profile.vue'
+import RegisterView from '../views/auth/Register.vue'
+import ProfileView from '../views/auth/Profile.vue'
+import ChangePasswordView from '../views/auth/ChangePassword.vue'
+import ForgotPasswordView from '../views/auth/ForgotPassword.vue'
+import ResetPasswordView from '../views/auth/ResetPassword.vue'
 
 const routes = [
   {
@@ -32,15 +34,45 @@ const routes = [
     component: CatalogView, // Component giao diện được hiển thị khi truy cập
   },
 
-  
-  // [note:] phần profile do front-end dev chưa làm xong nên tạm thời comment lại, khi nào làm xong thì bỏ comment ra
-  // {
-  //   path: '/profile',
-  //   name: 'profile',
-  //   component: Profile,
-  //   // Đánh dấu route này chỉ dành cho người dùng đã đăng nhập.
-  //   meta: { requiresAuth: true }
-  // }
+  {
+    path: "/profile",
+    name: "profile",
+    component: ProfileView,
+    // Đánh dấu route này chỉ dành cho người dùng đã đăng nhập.
+    meta: { requiresAuth: true }
+  }, 
+
+  {
+    path: "/change-password",
+    name: "change-password",
+    component: ChangePasswordView,
+    meta: { requiresAuth: true }
+  },
+
+  {
+    path: "/register",
+    name: "register",
+    component: RegisterView,
+  },
+
+  {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: ForgotPasswordView,
+  },
+
+  {
+    path: "/reset-password",
+    name: "reset-password",
+    component: ResetPasswordView,
+  },
+
+  {
+    path: "/:pathMatch(.*)*",
+    name: "not-found",
+    component: () => import("../views/NotFound.vue"),
+  }
+
 ];
 
 const router = createRouter({

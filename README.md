@@ -103,6 +103,8 @@ Sau đó truy cập:
 http://localhost:5173
 ```
 
+Email đặt lại mật khẩu mở frontend qua `FRONTEND_URL`. Mặc định là `http://localhost:5173`; khi deploy, cấu hình biến môi trường `FRONTEND_URL` thành URL frontend thực tế.
+
 ## Build frontend cho production
 
 ```bash

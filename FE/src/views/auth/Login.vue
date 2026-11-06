@@ -9,11 +9,12 @@ const router = useRouter()
 const { showToast } = useToast()
 const loading = ref(false)
 const form = ref({
-  email: 'admin@example.com',
-  password: '123456'
+  email: '',
+  password: ''
 })
 
-const fetchApiLogin = async () => {
+// Lưu JWT và thông tin user từ BE trước khi chuyển trang để route guard nhận diện phiên đăng nhập.
+  const fetchApiLogin = async () => {
   try {
     loading.value = true
 
@@ -49,7 +50,8 @@ const fetchApiLogin = async () => {
           v-model="form.email"
           type="email"
           class="form-control"
-          placeholder="admin@example.com"
+          autocomplete="email"
+          required
         />
       </div>
 
@@ -60,13 +62,17 @@ const fetchApiLogin = async () => {
           v-model="form.password"
           type="password"
           class="form-control"
-          placeholder="123456"
+          autocomplete="current-password"
+          required
         />
       </div>
 
       <button type="submit" class="btn btn-primary" :disabled="loading">
         {{ loading ? 'Đang đăng nhập...' : 'Login' }}
       </button>
+      <router-link to="/forgot-password" class="d-block mt-2">Quên mật khẩu?</router-link>
+      <p>Chưa có tài khoản </p>
+      <router-link to="/register" class="btn btn-secondary">Đăng ký</router-link>
     </form>
   </div>
 </template>
