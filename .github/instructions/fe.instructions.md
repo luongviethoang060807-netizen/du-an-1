@@ -4,39 +4,125 @@ applyTo: "FE/**"
 
 # FE Instructions
 
-## Phạm vi và nguyên tắc
-- Chỉ sửa `FE/` khi task thuộc FE. Không tự tiện sửa `BE/`, hợp đồng API, schema DB hoặc cấu hình deploy để làm giao diện chạy được.
-- Trước khi sửa, kiểm tra trạng thái thay đổi hiện có và đọc đúng component/service/router liên quan. Giữ nguyên thay đổi chưa commit của người khác; không ghi đè, revert, format hàng loạt hoặc chỉnh file ngoài phạm vi task.
-- Chia task theo file hoặc vùng sở hữu rõ ràng. Mỗi file chỉ có một người/agent chịu trách nhiệm chỉnh tại một thời điểm. Không cùng lúc sửa `App.vue`, router, API service hoặc stylesheet toàn cục nếu chưa phân công rõ.
-- Chỉ sửa phần tối thiểu cần thiết. Không đổi framework, tạo service HTTP mới, thêm dependency hay refactor diện rộng nếu task không yêu cầu.
+Dự án môn học: Vue 3 + Vite + Vue Router + Axios + Bootstrap 5. Ưu tiên đơn giản, đúng pattern hiện có.
 
-## Stack và cấu trúc hiện có
-- Frontend dùng Vue 3, Vite, Vue Router, Axios và Bootstrap 5. Theo cấu trúc `FE/src/`: router ở `router/index.js`, API tập trung ở `services/api.js`, xác thực ở `services/auth.js`, view ở `views/`, component dùng lại ở `components/`.
-- Dùng Composition API và `<script setup>` theo pattern trong các view lân cận. Dùng `ref`/`computed` phù hợp; không dùng `this`.
-- Dùng Bootstrap đã được import trong `main.js`; CSS scoped cho riêng component, `style.css` chỉ cho style thực sự toàn cục.
-- Không thêm thư viện hoặc đổi cấu trúc file nếu pattern sẵn có đáp ứng được.
+## 1. Phạm vi và nguyên tắc
+- Chỉ sửa `FE/` khi task thuộc FE. Không sửa `BE/`, contract API, schema DB hay cấu hình deploy để giao diện chạy được.
+- Trước khi sửa: chạy `git status`, đọc đúng component/service/router liên quan. Không ghi đè, revert hay format hàng loạt thay đổi chưa commit của người khác.
+- Mỗi file chỉ một owner tại một thời điểm. Vùng dùng chung (cần phân công trước): `App.vue`, `router/index.js`, `services/*`, `style.css`.
+- Sửa tối thiểu. Không đổi framework, không thêm dependency, không tạo service HTTP mới, không refactor diện rộng nếu task không yêu cầu.
 
-## Tích hợp API: hợp đồng là ranh giới giữa FE và BE
-- Mọi request phải đi qua `@/services/api`. Không dùng `fetch`, không tạo Axios instance riêng, không hardcode host/base URL. Service đã tự cấu hình base URL và Bearer token.
-- Dùng query action theo router PHP hiện có, ví dụ `api.get('/?action=api-products')`. Không đoán action, HTTP method, tên field, kiểu dữ liệu, quy tắc phân trang hoặc yêu cầu đăng nhập.
-- Trước khi tích hợp endpoint mới/thay đổi, xác nhận hợp đồng với người phụ trách BE: action, method, query/body, auth, response thành công, lỗi và mã HTTP. Ghi rõ hợp đồng trong task hoặc trao đổi nhóm trước khi hai phía triển khai. Nếu chưa xác nhận, không tự tạo contract giả; hoàn thành phần UI cô lập hoặc hỏi đúng thông tin còn thiếu.
-- FE không sửa route/controller/model/schema BE để khớp cách FE đang gọi. Nếu phát hiện contract không khớp, báo cụ thể request và response mong đợi, rồi phối hợp người sở hữu BE.
-- Đọc đúng response thực tế và dùng đúng property; chỉ fallback giữa các key khi API có quy định như vậy. Không nuốt lỗi bằng mảng rỗng khiến lỗi server bị hiểu nhầm là không có dữ liệu.
-- Với request bất đồng bộ, biểu diễn loading, empty và error theo nhu cầu màn hình; xử lý lỗi Axios và tránh cập nhật trạng thái sau khi component đã bị hủy khi có nguy cơ race.
-- Endpoint cần đăng nhập phải dựa trên cơ chế auth đang có (`services/auth.js`, router guard và interceptor); không tự gửi user ID/role do client cung cấp để thay danh tính đã xác thực.
+## 2. File KHÔNG ĐƯỢC SỬA
+- `FE/src/services/api.js`: giữ nguyên hoàn toàn (base URL, interceptor, xử lý 401). Chỉ import để dùng, không chỉnh, không "dọn", không refactor, kể cả khi thấy hardcode. Cần đổi thì phải có yêu cầu trực tiếp từ chủ dự án.
+- Không bắt chước cách `api.js` xác định base URL ở nơi khác. Mọi nơi khác chỉ gọi `api.get/post/...`.
+- `services/auth.js` (cách lưu token trong `localStorage`, key `auth_token`/`auth_user`): không đổi nếu task không yêu cầu trực tiếp.
 
-## Router, component và dữ liệu
-- Khi thêm trang: tạo view dưới `src/views/`, đăng ký route trong `src/router/index.js`, dùng `router-link`/router hiện có. Vì router là file dùng chung, phải phối hợp quyền sở hữu trước khi sửa đồng thời.
-- Tái sử dụng component/service hiện có nếu phù hợp; không nhồi logic màn hình không liên quan vào `App.vue`.
-- Dùng `:key` ổn định cho `v-for`, kiểm tra dữ liệu trước khi render và giữ xử lý form/loading/error trong phạm vi feature.
-- Không thay đổi cách lưu token, điều hướng 401, base URL hoặc interceptor trong `services/api.js` trừ khi task trực tiếp yêu cầu; các thay đổi này ảnh hưởng toàn ứng dụng và phải được xác nhận trong task.
+## 3. Cấu trúc và pattern
+- `src/router/index.js` (route), `src/services/` (api, auth, toast), `src/views/` (trang), `src/views/auth/` (nhóm auth), `src/components/` (tái sử dụng), `src/helpers/` (hàm tiện ích như `formatPrice`).
+- Dùng Composition API với `<script setup>`, `ref`/`computed`. Không dùng `this`, không dùng Options API. Ngoại lệ: trang tĩnh không có logic (như `NotFound.vue`).
+- Bootstrap 5 đã import trong `main.js`: dùng class có sẵn, không import lại, không thêm UI library. CSS riêng dùng `<style scoped>`; `style.css` chỉ cho style toàn cục thật sự.
+- Thông báo cho người dùng dùng `services/toast.js`, theo cách các view auth đang dùng.
+- Định dạng giá dùng `helpers/formatPrice.js`, không tự viết lại.
+- Tái sử dụng component/service sẵn có. Không nhồi logic màn hình vào `App.vue`.
 
-## Giao thức phối hợp để tránh xung đột
-1. Trước khi làm, nêu file/phạm vi mình sở hữu và xác nhận không có người khác đang sửa cùng vùng. Kiểm tra `git status` và diff liên quan; không xóa hoặc hấp thụ thay đổi chưa rõ chủ sở hữu.
-2. Với task FE-BE, thống nhất contract trước; chia ownership theo phía/file. Không để hai người cùng chỉnh một file. Nếu cần đổi file dùng chung, chỉ định một owner hoặc thực hiện tuần tự.
-3. Nếu yêu cầu mới xung đột với code/contract hiện có, dừng đúng phần xung đột, mô tả bằng chứng và thống nhất quyết định; không âm thầm đổi API.
-4. Khi kết thúc, báo file đã sửa, contract đã dùng, thay đổi nào cần BE/FE tiếp tục và lệnh kiểm tra đã chạy. Không tuyên bố kiểm tra pass nếu chưa chạy.
+## 4. Tích hợp API
+- Mọi request đi qua `import api from '@/services/api'`. Không dùng `fetch`, không `axios.create`, không hardcode host/URL.
+- Gọi theo query action của router PHP, ví dụ `api.get('/?action=api-products', { params })`, `api.post('/?action=api-login', body)`. Không đoán action, method, field, kiểu dữ liệu, phân trang hay yêu cầu đăng nhập.
+- Endpoint mới/thay đổi: xác nhận contract với người phụ trách BE trước (action, method, query/body, auth, response thành công, lỗi, mã HTTP). Chưa xác nhận thì không tự dựng contract giả: làm phần UI cô lập hoặc hỏi đúng thông tin còn thiếu.
+- Đọc đúng response thực tế. Shape hiện tại:
+  - Thành công: `res.data.status === 'success'` kèm key theo tài nguyên (ví dụ `res.data.products.data` + `res.data.products.pagination`).
+  - Lỗi: `err.response?.data?.message` (đã có trong các view auth).
 
-## Kiểm tra trước khi bàn giao
-- Chạy `npm run build` trong `FE/` sau khi sửa. Dự án hiện không khai báo test script; không bịa ra test command.
-- Kiểm tra diff để chắc không có file ngoài phạm vi, secret, URL môi trường cứng hoặc thay đổi contract ngoài ý muốn.
+  Không đoán key; chỉ fallback giữa các key khi BE đã quy định như vậy.
+- Không nuốt lỗi bằng mảng rỗng khiến lỗi server bị hiểu thành "không có dữ liệu". Tách rõ trạng thái loading / empty / error trên màn hình.
+- Request bất đồng bộ trong component: dùng `try/catch/finally`, tắt loading trong `finally`; tránh cập nhật state khi component đã unmount nếu có nguy cơ race (ví dụ tìm kiếm gõ liên tục).
+- Endpoint cần đăng nhập dựa vào cơ chế sẵn có (`auth.js`, route guard `meta.requiresAuth`, interceptor gắn Bearer). Không tự gửi user ID/role từ client để thay danh tính đã xác thực. Route guard chỉ là UX, quyền thật do BE kiểm soát.
+
+## 5. Router và component
+- Thêm trang: tạo view trong `src/views/` (nhóm auth để trong `views/auth/`), đăng ký route trong `router/index.js` (đặt trước route `/:pathMatch(.*)*`), điều hướng bằng `router-link` hoặc `router`.
+- Trang cần đăng nhập: thêm `meta: { requiresAuth: true }`.
+- Router là file dùng chung: phối hợp owner trước khi sửa.
+- `v-for` luôn có `:key` ổn định (ví dụ `id`), kiểm tra dữ liệu trước khi render, xử lý form/loading/error trong phạm vi feature.
+- Form: validate phía FE để trải nghiệm tốt (định dạng email, độ dài mật khẩu 8-72 khớp với BE), nhưng không coi đó là bảo mật.
+
+## 6. Phong cách code và comment cho người mới
+Nhóm có nhiều thành viên mới học, code do AI sinh ra phải đọc hiểu được mà không cần hỏi lại. Vì vậy bắt buộc comment tiếng Việt theo các quy tắc sau.
+
+### Bắt buộc comment
+- **Đầu `<script setup>` của mỗi view/component mới**: 1-3 dòng nói trang/component này làm gì, gọi API nào (nếu có).
+- **Mỗi hàm mới** (xử lý submit, gọi API, validate, event handler): comment 1-2 dòng ngay trên hàm, nói hàm làm gì và khi nào được gọi.
+- **Mỗi `ref`, `computed`, `watch`** có ý nghĩa không hiển nhiên: ghi biến này lưu gì, vì sao dùng computed/watch.
+- **Mỗi lần gọi API**: ghi endpoint dùng để làm gì, response trả về dạng nào, xử lý lỗi ra sao.
+- **Route mới trong `router/index.js`**: ghi trang này dùng để làm gì, có cần đăng nhập không (`requiresAuth`).
+- **Chỗ khó hiểu với người mới**, giải thích VÌ SAO làm vậy:
+  - `ref`/`.value`, `computed`, `watch`, `onMounted`, `v-model`, `v-for` + `:key`.
+  - `async/await`, `try/catch/finally` và vì sao tắt loading trong `finally`.
+  - Route guard, `meta.requiresAuth`, Bearer token trong interceptor (đọc hiểu, không sửa `api.js`).
+  - Chỗ xử lý trạng thái loading / rỗng / lỗi, xử lý race khi gõ tìm kiếm liên tục.
+- **Trong template** `<template>`: comment HTML `<!-- ... -->` cho từng khối lớn (form, danh sách, phân trang, thông báo lỗi) để biết khối đó làm gì.
+- **Giải thích thuật ngữ** lần đầu xuất hiện trong file bằng 1 câu dễ hiểu. Ví dụ: `// ref: biến "phản ứng", khi giá trị đổi thì giao diện tự cập nhật`.
+
+### Cách viết comment
+- Viết tiếng Việt có dấu, câu ngắn, dùng từ đơn giản, không dùng tiếng lóng. Giữ nguyên tên kỹ thuật bằng tiếng Anh (`ref`, `computed`, `axios`) kèm giải thích ngắn.
+- Giải thích **ý định và lý do** hơn là dịch lại từng dòng code.
+- Không comment dòng hiển nhiên (`loading.value = true`). Comment thừa làm code khó đọc hơn.
+- Khi sửa code, cập nhật comment tương ứng. Comment sai còn tệ hơn không có comment.
+- Không xóa, không dịch sang tiếng Anh, không viết lại comment tiếng Việt đang có nếu task không yêu cầu.
+- Không đưa token, secret hay URL môi trường thật vào comment.
+- Không dùng ngôn từ xúc phạm hay meme trong code, giao diện, dữ liệu mẫu.
+- Tên component/file view theo pattern hiện có (`PascalCase.vue`); `catalog.vue` đang viết thường, không đổi tên nếu không có task.
+
+### Ví dụ chuẩn
+```vue
+<script setup>
+// Trang danh sách sản phẩm: gọi API api-products, có tìm kiếm và phân trang.
+import { ref, onMounted } from 'vue'
+import api from '@/services/api'
+
+// Danh sách sản phẩm đang hiển thị. ref: khi giá trị đổi, giao diện tự cập nhật.
+const products = ref([])
+// true khi đang chờ server trả dữ liệu, dùng để hiện chữ "Đang tải...".
+const loading = ref(false)
+// Thông báo lỗi để hiển thị cho người dùng, rỗng = không có lỗi.
+const errorMessage = ref('')
+
+// Gọi API lấy sản phẩm theo trang. Được gọi khi trang mở và khi đổi trang.
+async function fetchProducts(page = 1) {
+  loading.value = true
+  errorMessage.value = ''
+  try {
+    const res = await api.get('/?action=api-products', { params: { page } })
+    products.value = res.data.products.data
+  } catch (err) {
+    // Hiện lỗi thật thay vì để danh sách rỗng, tránh nhầm với "chưa có sản phẩm".
+    errorMessage.value = err.response?.data?.message || 'Không tải được sản phẩm'
+  } finally {
+    // finally luôn chạy dù thành công hay lỗi, nên tắt loading ở đây.
+    loading.value = false
+  }
+}
+
+// onMounted: chạy 1 lần khi trang vừa hiện ra.
+onMounted(() => fetchProducts())
+</script>
+```
+
+## 7. Hiện trạng đã biết (KHÔNG tự sửa khi không có task riêng)
+- `api.js` hardcode base URL theo localhost/port dev (xem mục 2: không được sửa).
+- Token lưu trong `localStorage`.
+- `TestView.vue` là trang thử nghiệm.
+- Chưa có test tự động.
+
+Phát hiện thêm vấn đề tương tự: báo lại, không tự sửa ngầm.
+
+## 8. Phối hợp để tránh xung đột
+1. Trước khi làm: nêu file/phạm vi mình sở hữu, xác nhận không ai đang sửa cùng vùng.
+2. Task FE-BE: thống nhất contract trước, chia owner theo file, không để hai người sửa cùng một file.
+3. Yêu cầu mới xung đột code/contract hiện có: dừng đúng phần xung đột, mô tả bằng chứng (request/response mong đợi vs thực tế), thống nhất quyết định.
+4. Khi xong: báo file đã sửa, contract đã dùng, việc BE/FE cần làm tiếp, lệnh kiểm tra đã chạy. Không tuyên bố pass nếu chưa chạy.
+
+## 9. Kiểm tra trước khi bàn giao
+- Chạy `npm run build` trong `FE/`. Dự án chưa có test script: không bịa lệnh test.
+- Chạy thử màn hình bằng `npm run dev` với các trường hợp: có dữ liệu, rỗng, lỗi API, chưa đăng nhập (với route bảo vệ).
+- Xem diff: không có file ngoài phạm vi, không sửa `api.js`, không có URL cứng mới, không đổi contract ngoài ý muốn.
+- Mọi hàm, API call, route, `ref/computed/watch` mới đều có comment tiếng Việt theo mục 6; chỗ khó hiểu có giải thích lý do.

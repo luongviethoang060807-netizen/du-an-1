@@ -4,41 +4,124 @@ applyTo: "BE/**"
 
 # BE Instructions
 
-## Phạm vi và nguyên tắc
-- Chỉ sửa `BE/` khi task thuộc BE. Không tự tiện sửa `FE/` để che lỗi API, cũng không thay schema/contract ngoài yêu cầu.
-- Trước khi sửa, kiểm tra trạng thái thay đổi hiện có và đọc đúng route/controller/model/helper liên quan. Giữ nguyên thay đổi chưa commit của người khác; không ghi đè, revert, format hàng loạt hoặc chỉnh file ngoài phạm vi task.
-- Chia task theo file hoặc vùng sở hữu rõ ràng. Mỗi file chỉ có một người/agent chịu trách nhiệm chỉnh tại một thời điểm. `routes/index.php`, helper chung, auth middleware và model dùng chung là vùng có ảnh hưởng rộng: phải phân công owner nếu nhiều task/nhánh cùng chạm.
-- Chỉ sửa phần tối thiểu cần thiết. Không đổi framework, tạo tầng kiến trúc mới, thêm dependency hoặc refactor diện rộng nếu task không yêu cầu.
+Dự án môn học: PHP MVC thuần + MySQL (PDO). Ưu tiên đơn giản, đúng pattern hiện có, dễ giải thích khi bảo vệ.
 
-## Kiến trúc dự án
-- Backend là PHP. Entry point `BE/index.php` nạp cấu hình/helper, đăng ký autoload cho `models/`, `controllers/`, `extensions/`, rồi nạp `routes/index.php`.
-- Đăng ký API action trong `BE/routes/index.php`; xử lý request/điều phối trong controller; truy cập dữ liệu qua model và PDO. Theo pattern hiện có, không đặt truy vấn DB hoặc nghiệp vụ vào router.
-- Tái sử dụng `response_json(...)`, validator, middleware và helper đang có sau khi đọc cách chúng hoạt động. Không tự echo JSON theo format khác nếu helper chuẩn đáp ứng được.
-- Giữ tên file/vị trí theo cấu trúc `controllers/`, `models/`, `extensions/`, `configs/`, `routes/`, `database/`. Không chuyển hoặc đổi tên public API/class tùy tiện.
+## 1. Phạm vi và nguyên tắc
+- Chỉ sửa `BE/` khi task thuộc BE. Không sửa `FE/` để che lỗi API, không đổi schema/contract ngoài yêu cầu.
+- Trước khi sửa: chạy `git status`, đọc đúng route/controller/model/helper liên quan. Không ghi đè, revert hay format hàng loạt thay đổi chưa commit của người khác.
+- Mỗi file chỉ một owner tại một thời điểm. Vùng ảnh hưởng rộng (cần phân công trước): `routes/index.php`, `configs/helper.php`, `configs/env.php`, `extensions/AuthMiddleware.php`, `models/BaseModel.php`, `models/User.php`.
+- Sửa tối thiểu. Không đổi framework, không thêm dependency (Composer), không tạo tầng kiến trúc mới, không refactor diện rộng nếu task không yêu cầu.
 
-## Hợp đồng API: phối hợp bắt buộc với FE
-- Một endpoint là contract công khai. Trước khi thêm/đổi endpoint, thống nhất với người phụ trách FE: action, HTTP method, query/body, xác thực, response thành công, lỗi và mã HTTP. Ghi contract trong task/trao đổi nhóm trước khi hai phía triển khai.
-- Không đổi âm thầm tên action, key response, kiểu dữ liệu, quy tắc phân trang, mã HTTP hoặc yêu cầu auth đã được FE dùng. Nếu bắt buộc đổi, nêu contract cũ/mới, nơi bị ảnh hưởng và phối hợp cập nhật FE.
-- Đọc các endpoint/controller lân cận làm chuẩn. Response thành công hiện thường có `status: 'success'` cùng key dữ liệu theo tài nguyên (ví dụ `products`); không giả định tất cả endpoint có cùng shape.
-- FE gọi endpoint qua `FE/src/services/api.js` với action query (`?action=...`). Không yêu cầu FE hardcode host hoặc tạo HTTP client mới.
-- Kiểm tra auth tại router/middleware theo endpoint. Với route bảo vệ, lấy danh tính từ payload đã xác minh của middleware; không tin user ID, role hay quyền do client gửi.
+## 2. Kiến trúc
+- Luồng: `index.php` (nạp config/helper + autoload `models/`, `controllers/`, `extensions/`) → `routes/index.php` (switch theo `?action=`) → Controller → Model (PDO).
+- Router chỉ điều phối (gọi middleware + controller). Không đặt truy vấn DB hay nghiệp vụ trong router.
+- Controller xử lý request/response; Model truy cập DB. Model mới kế thừa `BaseModel` và khai báo `protected $table`.
+- Tên action dạng `api-<tên>` (kebab-case). Tên class `PascalCase`, file trùng tên class (autoload dựa vào tên file).
+- Không đổi tên/di chuyển class hoặc action đang được dùng.
 
-## An toàn dữ liệu và bảo mật
-- Validate input ở ranh giới request: kiểu, định dạng, miền giá trị, trường bắt buộc và giới hạn độ dài. Trả lỗi nhất quán, không để warning/stack trace hoặc chi tiết nội bộ lộ ra response production.
-- Truy vấn dữ liệu bằng prepared statements và bind parameter. Không nối input người dùng vào SQL; identifier động phải được giới hạn bằng allowlist, vì identifier không thể bind như value.
-- Áp dụng quyền truy cập ở server cho từng thao tác/tài nguyên. Không coi ẩn nút hoặc route guard phía FE là kiểm soát bảo mật.
-- Không ghi secret, mật khẩu, token, dữ liệu nhạy cảm hoặc thông tin kết nối vào source/log/response. Dùng cấu hình môi trường hiện có; không sửa `.env` thật hay in giá trị bí mật.
-- Tránh thay đổi CORS, session, JWT, mail, upload hoặc cấu hình toàn cục như tác dụng phụ của feature. Những vùng này ảnh hưởng toàn ứng dụng và cần yêu cầu rõ, owner và kiểm chứng tương ứng.
-- Với thay đổi schema, tạo migration SQL theo convention trong `database/migrations/`; không sửa migration đã áp dụng nếu không có kế hoạch migration rõ. Không chạy thao tác phá hủy/xóa dữ liệu nếu chưa được yêu cầu và xác nhận.
+## 3. Cấu hình (`configs/env.php`)
+- `BE/configs/env.php` là nơi cấu hình duy nhất của BE (DB, JWT, SMTP, URL, TTL...) bằng hằng `define(...)`. Dự án môn học nên cho phép giữ giá trị trực tiếp trong file này.
+- Cần cấu hình mới: thêm `define(...)` vào `env.php`, đặt tên IN HOA_SNAKE_CASE, kèm comment tiếng Việt. Không tạo cơ chế cấu hình khác (không thêm `.env` loader, không thêm thư viện).
+- Không đổi giá trị hiện có (DB, JWT_SECRET, SMTP...) trừ khi task yêu cầu rõ.
+- Không in giá trị cấu hình ra response, log hay comment. Không copy secret sang file khác.
 
-## Giao thức phối hợp để tránh xung đột
-1. Trước khi làm, nêu file/phạm vi mình sở hữu và xác nhận không có người khác đang sửa cùng vùng. Kiểm tra `git status` và diff liên quan; không xóa hoặc hấp thụ thay đổi chưa rõ chủ sở hữu.
-2. Với task FE-BE, thống nhất contract trước; chia ownership theo phía/file. Không để hai người cùng chỉnh một file. Nếu cần đổi file dùng chung, chỉ định một owner hoặc thực hiện tuần tự.
-3. Nếu yêu cầu mới xung đột với code/contract hiện có, dừng đúng phần xung đột, mô tả bằng chứng và thống nhất quyết định; không âm thầm đổi API/schema.
-4. Khi kết thúc, báo file đã sửa, contract và migration (nếu có), việc FE cần làm và lệnh kiểm tra đã chạy. Không tuyên bố kiểm tra pass nếu chưa chạy.
+## 4. Hợp đồng API (phối hợp bắt buộc với FE)
+- Endpoint là contract công khai. Trước khi thêm/đổi, thống nhất với FE: action, method, query/body, yêu cầu auth, response thành công, lỗi, mã HTTP. Ghi contract vào task/trao đổi nhóm trước khi code.
+- Không âm thầm đổi tên action, key response, kiểu dữ liệu, quy tắc phân trang, mã HTTP hay yêu cầu auth mà FE đang dùng.
+- Dùng `response_json($data, $status)` cho mọi response JSON. Không `echo json_encode` trực tiếp (trừ route 404 cũ, giữ nguyên).
+- Format chuẩn cho endpoint MỚI:
+  - Thành công: `{ "status": "success", "message"?: "...", "<tài_nguyên>": ... }` (ví dụ `products`, `banners`). Danh sách có phân trang theo mẫu `ProductController` (`data` + `pagination`).
+  - Lỗi: `{ "status": "error", "message": "..." }` kèm mã HTTP đúng (400 sai dữ liệu, 401 chưa đăng nhập, 403 không đủ quyền, 404 không có, 405 sai method, 409 trùng, 422 không hợp lệ).
+- Endpoint cũ giữ nguyên shape hiện tại, không "chuẩn hóa" lại.
+- Route cần đăng nhập: gọi `(new AuthMiddleware())->requireAuth()` trong router, truyền payload xuống controller. Lấy user ID/role từ `sub`/`role` trong payload, không tin ID hoặc role do client gửi.
+- Kiểm tra method (`$_SERVER['REQUEST_METHOD']`) trong controller với endpoint POST/PUT/DELETE.
 
-## Kiểm tra trước khi bàn giao
-- Chạy `php -l` cho từng file PHP đã sửa, ví dụ `php -l BE/routes/index.php` từ thư mục gốc.
-- Với API, kiểm tra request hợp lệ, input sai, chưa xác thực/không đủ quyền (nếu áp dụng), dữ liệu rỗng và lỗi; đảm bảo status code, JSON và contract đúng.
-- Nếu có migration, kiểm tra thứ tự, tính lặp/an toàn theo convention hiện có và ảnh hưởng dữ liệu; không chạy trên database thật nếu chưa được cho phép.
-- Kiểm tra diff để chắc không có file ngoài phạm vi, secret, thay đổi schema/contract ngoài ý muốn hoặc thao tác dữ liệu nguy hiểm.
+## 5. Validate và bảo mật dữ liệu
+- Validate tại ranh giới request: kiểu, định dạng, trường bắt buộc, miền giá trị, độ dài. Chuẩn validate: viết thủ công theo mẫu `AuthController` (`is_array`, `is_string`, `filter_var`, `strlen`). `extensions/Validator.php` hiện chưa được dùng, chỉ dùng khi task yêu cầu.
+- Luôn dùng prepared statement + bind (`bindValue` với `PDO::PARAM_INT` cho số). Identifier động (tên cột, ORDER BY) phải qua allowlist.
+- Phân quyền ở server cho từng thao tác. Ẩn nút/route guard ở FE không phải kiểm soát bảo mật.
+- Mật khẩu: `password_hash` / `password_verify`. Token xác minh/reset: chỉ lưu hash, có hạn dùng (theo mẫu `AuthController`).
+- Endpoint dễ lộ thông tin (đăng nhập, quên mật khẩu): phản hồi chung, không cho biết email có tồn tại.
+- Không log hay trả về mật khẩu, token, thông tin kết nối. Không để stack trace ra response cho người dùng cuối.
+- Upload file: dùng `validate_upload` / `save_uploaded_file` trong `helper.php`.
+- Không đổi CORS, session, JWT, mail, upload hay xử lý lỗi toàn cục như tác dụng phụ của feature. Chỉ sửa khi task yêu cầu trực tiếp.
+
+## 6. Database
+- Đổi schema: tạo migration mới trong `BE/database/migrations/`, tên `YYYYMMDD_<mô_tả>.sql`, viết để chạy lặp được (`IF NOT EXISTS`...). Không sửa migration đã áp dụng.
+- Đồng bộ `create_database.sql` khi schema ban đầu thay đổi (README coi đây là file khởi tạo chính). Dữ liệu mẫu để trong `database/seed/`.
+- Không chạy lệnh xóa/phá dữ liệu và không chạy trên DB thật nếu chưa được yêu cầu và xác nhận.
+
+## 7. Hiện trạng đã biết (KHÔNG bắt chước, KHÔNG tự sửa khi không có task riêng)
+- CORS `*` đặt ở `index.php` và `response_json`.
+- `env.php`: biến `$_SERVER['HTTP']` (đáng lẽ `HTTPS`) và secret nằm trực tiếp trong file.
+- `handleGlobalError` hiển thị chi tiết lỗi khi `APP_ENV` khác `production`.
+- `logout` chỉ xác minh token, chưa vô hiệu hóa token (JWT stateless).
+- Chưa có rate limit cho login/register/forgot-password.
+- Route demo `api-guns`, `api-camchim`: không dùng làm mẫu.
+- `Validator.php` chưa được dùng.
+
+Phát hiện thêm vấn đề tương tự: báo lại, không tự sửa ngầm.
+
+## 8. Phong cách code và comment cho người mới
+Nhóm có nhiều thành viên mới học, code do AI sinh ra phải đọc hiểu được mà không cần hỏi lại. Vì vậy bắt buộc comment tiếng Việt theo các quy tắc sau.
+
+### Bắt buộc comment
+- **Đầu mỗi file mới** (controller, model, extension): 1-3 dòng nói file này làm gì, thuộc tầng nào.
+- **Mỗi class, mỗi hàm/method mới**: docblock `/** ... */` tiếng Việt gồm:
+  - Hàm làm gì, nói ngắn bằng ngôn ngữ thường.
+  - `@param` và `@return` khi có tham số/giá trị trả về.
+  - Điều kiện lỗi hoặc mã HTTP có thể trả về (nếu là API).
+- **Mỗi route mới trong `routes/index.php`**: 1 dòng comment nói endpoint dùng để làm gì, có yêu cầu đăng nhập hay không.
+- **Chỗ khó hiểu với người mới**, ghi vài dòng giải thích VÌ SAO làm vậy (không chỉ làm gì):
+  - Prepared statement và `bindValue` (vì sao không nối chuỗi vào SQL).
+  - JWT, Bearer token, middleware, payload `sub`/`role`.
+  - Hash mật khẩu/token, token có hạn dùng.
+  - Phân trang (`LIMIT`/`OFFSET`), `LEFT JOIN`, query có điều kiện động.
+  - Regex, `filter_var`, `random_bytes`, `hash_equals` và các hàm ít gặp.
+  - Mọi đoạn có thứ tự quan trọng hoặc dễ làm sai khi sửa (ví dụ xóa user pending khi gửi mail lỗi).
+- **Giải thích thuật ngữ** lần đầu xuất hiện trong file bằng 1 câu dễ hiểu. Ví dụ: `// JWT: chuỗi mã hóa chứa thông tin đăng nhập, client gửi kèm mỗi request`.
+
+### Cách viết comment
+- Viết tiếng Việt có dấu, câu ngắn, dùng từ đơn giản, không dùng tiếng lóng. Giữ nguyên tên kỹ thuật bằng tiếng Anh (`PDO`, `JWT`, `middleware`) kèm giải thích ngắn.
+- Giải thích **ý định và lý do** hơn là dịch lại từng dòng code.
+- Không comment dòng hiển nhiên (`$i++`, `return $result;`). Comment thừa làm code khó đọc hơn.
+- Khi sửa code, cập nhật comment tương ứng. Comment sai còn tệ hơn không có comment.
+- Không xóa, không dịch sang tiếng Anh, không viết lại comment tiếng Việt đang có nếu task không yêu cầu.
+- Không đưa secret, mật khẩu hay giá trị cấu hình thật vào comment hoặc ví dụ.
+- Không dùng ngôn từ xúc phạm, chế giễu cá nhân hay meme trong code, message, tên route, dữ liệu mẫu.
+
+### Ví dụ chuẩn
+```php
+/**
+ * Lấy danh sách sản phẩm, có lọc theo từ khóa/danh mục và phân trang.
+ *
+ * @param string   $search     Từ khóa tìm theo tên, mã, mô tả (rỗng = không lọc)
+ * @param int|null $categoryId ID danh mục (null = tất cả)
+ * @param int      $page       Trang hiện tại, bắt đầu từ 1
+ * @param int      $perPage    Số sản phẩm mỗi trang
+ * @return array ['data' => danh sách, 'pagination' => thông tin phân trang]
+ */
+public function getFiltered($search = '', $categoryId = null, $page = 1, $perPage = 8)
+{
+    // OFFSET = số bản ghi cần bỏ qua. Trang 1 bỏ 0, trang 2 bỏ $perPage, ...
+    $offset = ($page - 1) * $perPage;
+
+    // Dùng tham số :keyword thay vì nối chuỗi vào SQL để chống SQL injection
+    // (kẻ xấu chèn câu lệnh SQL qua ô tìm kiếm).
+    ...
+}
+```
+
+## 9. Phối hợp để tránh xung đột
+1. Trước khi làm: nêu file/phạm vi mình sở hữu, xác nhận không ai đang sửa cùng vùng.
+2. Task FE-BE: thống nhất contract trước, chia owner theo file, không để hai người sửa cùng một file.
+3. Yêu cầu mới xung đột code/contract hiện có: dừng đúng phần xung đột, mô tả bằng chứng, thống nhất quyết định.
+4. Khi xong: báo file đã sửa, contract, migration (nếu có), việc FE cần làm, lệnh kiểm tra đã chạy. Không tuyên bố pass nếu chưa chạy.
+
+## 10. Kiểm tra trước khi bàn giao
+- `php -l <file>` cho từng file PHP đã sửa (từ thư mục gốc, ví dụ `php -l BE/routes/index.php`).
+- Thử API: request hợp lệ, input sai, thiếu/sai token, sai method, dữ liệu rỗng. Kiểm tra mã HTTP và JSON đúng contract.
+- Có migration: kiểm tra thứ tự và khả năng chạy lặp.
+- Xem diff: không có file ngoài phạm vi, không lộ secret mới, không đổi contract/schema ngoài ý muốn.
+- Mọi hàm, class, route mới đều có comment tiếng Việt theo mục 8; chỗ khó hiểu có giải thích lý do.
+- Dự án chưa có test tự động: không bịa lệnh test.
