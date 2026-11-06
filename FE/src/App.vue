@@ -3,6 +3,7 @@ import { RouterView, useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import { isAuthenticated } from '@/services/auth'
 import { useToast } from '@/services/toast'
+import BannerSlider from '@/components/BannerSlider.vue'
 
 const checkAuth = ref(isAuthenticated())
 const route = useRoute()
@@ -11,7 +12,6 @@ const { toast, dismissToast } = useToast()
 // Đồng bộ trạng thái đăng nhập để menu cập nhật sau login hoặc logout.
 watch(() => route.fullPath, () => {
   checkAuth.value = isAuthenticated()
-
 })
 </script>
 
@@ -32,6 +32,10 @@ watch(() => route.fullPath, () => {
     </nav>
 
     <main class="container py-4">
+      <!-- Banner của Vinh -->
+      <BannerSlider />
+
+      <!-- Phần Toast thông báo từ nhánh dev -->
       <div
         v-if="toast"
         class="alert d-flex align-items-center justify-content-between gap-3 mb-3"
@@ -48,6 +52,8 @@ watch(() => route.fullPath, () => {
           @click="dismissToast"
         ></button>
       </div>
+
+      <!-- Nội dung chính chuyển trang -->
       <RouterView />
     </main>
   </div>
@@ -62,5 +68,4 @@ watch(() => route.fullPath, () => {
 .nav-link:hover {
   color: #fff;
 }
-
 </style>
