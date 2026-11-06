@@ -36,3 +36,14 @@ define('DB_OPTIONS',[
 // JWT auth config
 define('JWT_SECRET', 'du-an-1-demo-secret-key');
 define('JWT_TTL', 3600); // 1 giờ
+define('EMAIL_VERIFICATION_TTL', 3600); // Link xác minh đăng ký có hiệu lực 1 giờ
+define('PASSWORD_RESET_TTL', 3600); // Link đặt lại mật khẩu có hiệu lực 1 giờ
+
+// SMTP Gmail configuration
+define('MAIL_HOST', 'smtp.gmail.com');
+define('MAIL_PORT', 587);
+define('MAIL_USERNAME', 'xuanlonghh4@gmail.com');
+define('MAIL_PASSWORD', 'bhuojuathgpeejnj');
+define('MAIL_FROM_ADDRESS', 'xuanlonghh4@gmail.com');
+define('MAIL_FROM_NAME', 'Anh Long');
+define('MAIL_ENCRYPTION', 'tls');

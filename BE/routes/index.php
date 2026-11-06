@@ -17,6 +17,30 @@ switch ($action) {
         (new HomeController)->check();
         break;
 
+    // Bộ api auth ==========================
+    case 'api-register':
+        (new AuthController)->register();
+        break;
+
+    case 'api-verify-email':
+        (new AuthController)->verifyEmail();
+        break;
+
+    case 'api-forgot-password':
+        (new AuthController)->forgotPassword();
+        break;
+
+    case 'api-reset-password':
+        (new AuthController)->resetPassword();
+        break;
+
+    case 'api-change-password':
+        // Middleware kiểm tra Bearer JWT và trả payload đã xác minh; claim `sub` là ID user.
+        $authPayload = (new AuthMiddleware())->requireAuth();
+        // Truyền danh tính từ token xuống controller, không nhận user ID do client tự gửi.
+        (new AuthController)->changePassword($authPayload);
+        break;
+
     case 'api-login':
         (new AuthController)->login();
         break;
@@ -24,6 +48,7 @@ switch ($action) {
     case 'api-logout':
         (new AuthController)->logout();
         break;
+
 
     // API cần xác thực người dùng
     case 'api-posts':
