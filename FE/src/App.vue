@@ -26,6 +26,7 @@ watch(() => route.fullPath, () => {
           <router-link class="nav-link" to="/">About</router-link>
           <router-link class="nav-link" to="/login" v-if="!checkAuth">Login</router-link>
           <router-link class="nav-link" to="/profile" v-else>Profile</router-link>
+          <router-link class="nav-link" to="/products">Products</router-link>
         </div>
       </div>
     </nav>

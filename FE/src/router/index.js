@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import TestView from '../views/TestView.vue'
 import LoginView from '../views/auth/Login.vue'
 import { isAuthenticated } from '@/services/auth'
+import ProductView from '../views/ProductView.vue'
+
 
 
 // [note:] phần profile do front-end dev chưa làm xong nên tạm thời comment lại, khi nào làm xong thì bỏ comment ra
@@ -24,6 +26,11 @@ const routes = [
       name: 'login',
       component: LoginView
     },
+    {
+      path: '/products',
+      name: 'products',
+      component: ProductView
+    }
 
     // [note:] phần profile do front-end dev chưa làm xong nên tạm thời comment lại, khi nào làm xong thì bỏ comment ra
     // {
