@@ -38,6 +38,7 @@ define('JWT_SECRET', 'du-an-1-demo-secret-key');
 define('JWT_TTL', 3600); // 1 giờ
 define('EMAIL_VERIFICATION_TTL', 3600); // Link xác minh đăng ký có hiệu lực 1 giờ
 define('PASSWORD_RESET_TTL', 3600); // Link đặt lại mật khẩu có hiệu lực 1 giờ
+define('FRONTEND_URL', rtrim(getenv('FRONTEND_URL') ?: 'http://localhost:5173', '/'));
 
 // SMTP Gmail configuration
 define('MAIL_HOST', 'smtp.gmail.com');

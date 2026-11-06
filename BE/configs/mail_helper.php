@@ -93,7 +93,7 @@ function send_password_reset_email(string $recipientEmail, string $resetToken): 
         $mailer->isHTML(true);
         $mailer->Subject = 'Yêu cầu đặt lại mật khẩu';
 
-        $resetUrl = BASE_URL . '?action=api-reset-password&token=' . rawurlencode($resetToken);
+        $resetUrl = BASE_URL . '?action=reset-password-bridge&token=' . rawurlencode($resetToken);
         $safeUrl = htmlspecialchars($resetUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $expiryMinutes = (int) ceil(PASSWORD_RESET_TTL / 60);
         $mailer->Body = '

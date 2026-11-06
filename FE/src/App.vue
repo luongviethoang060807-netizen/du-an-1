@@ -24,6 +24,7 @@ watch(() => route.fullPath, () => {
           <router-link class="nav-link" to="/">Home</router-link>
           <router-link class="nav-link" to="/">News</router-link>
           <router-link class="nav-link" to="/">About</router-link>
+          <router-link class="nav-link" to="/catalog" v-if="checkAuth">Catalog</router-link>
           <router-link class="nav-link" to="/login" v-if="!checkAuth">Login</router-link>
           <router-link class="nav-link" to="/profile" v-else>Profile</router-link>
         </div>
@@ -31,20 +32,13 @@ watch(() => route.fullPath, () => {
     </nav>
 
     <main class="container py-4">
-      <RouterView />
-    </main>
-
-    <div
-      v-if="toast"
-      class="position-fixed top-0 end-0 p-3 w-100"
-      style="max-width: 24rem; z-index: 1080"
-      aria-live="polite"
-      aria-atomic="true"
-    >
       <div
-        class="alert d-flex align-items-center justify-content-between gap-3 mb-0"
+        v-if="toast"
+        class="alert d-flex align-items-center justify-content-between gap-3 mb-3"
         :class="`alert-${toast.type}`"
         :role="toast.type === 'danger' ? 'alert' : 'status'"
+        aria-live="polite"
+        aria-atomic="true"
       >
         <span>{{ toast.message }}</span>
         <button
@@ -54,7 +48,8 @@ watch(() => route.fullPath, () => {
           @click="dismissToast"
         ></button>
       </div>
-    </div>
+      <RouterView />
+    </main>
   </div>
 </template>
 
@@ -67,4 +62,5 @@ watch(() => route.fullPath, () => {
 .nav-link:hover {
   color: #fff;
 }
+
 </style>
