@@ -3,6 +3,8 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from '@/services/toast'
+import AuthPage from '@/components/AuthPage.vue'
+import { validateNewPassword, validatePasswordConfirmation } from '@/helpers/authValidation'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +17,23 @@ const form = ref({
   newPassword: '',
   passwordConfirmation: ''
 })
+// Lưu lỗi FE cho mật khẩu mới và trường xác nhận.
+const errors = ref({ newPassword: '', passwordConfirmation: '' })
+
+// Kiểm tra mật khẩu mới theo giới hạn của BE.
+const validateNewPasswordField = () => {
+  errors.value.newPassword = validateNewPassword(form.value.newPassword)
+  return !errors.value.newPassword
+}
+
+// Kiểm tra mật khẩu xác nhận đã nhập và trùng với mật khẩu mới.
+const validateConfirmationField = () => {
+  errors.value.passwordConfirmation = validatePasswordConfirmation(
+    form.value.newPassword,
+    form.value.passwordConfirmation
+  )
+  return !errors.value.passwordConfirmation
+}
 
 // GET chỉ kiểm tra token; token chỉ bị tiêu thụ khi gửi POST đổi mật khẩu.
 onMounted(async () => {
@@ -36,10 +55,9 @@ onMounted(async () => {
 
 // FE kiểm tra xác nhận, sau đó gửi token cùng mật khẩu mới để BE dùng token một lần.
 const resetPassword = async () => {
-  if (form.value.newPassword !== form.value.passwordConfirmation) {
-    showToast('Mật khẩu xác nhận không khớp.', 'danger')
-    return
-  }
+  const isPasswordValid = validateNewPasswordField()
+  const isConfirmationValid = validateConfirmationField()
+  if (!isPasswordValid || !isConfirmationValid) return
 
   try {
     loading.value = true
@@ -59,44 +77,66 @@ const resetPassword = async () => {
 </script>
 
 <template>
-  <section class="py-4">
-    <h1>Đặt lại mật khẩu</h1>
+  <AuthPage
+    title="Reset password"
+    description="Tạo mật khẩu mới để tiếp tục sử dụng tài khoản Sharp Barber."
+  >
+    <!-- Trạng thái kiểm tra link và form đặt lại mật khẩu. -->
+    <div v-if="checkingToken" class="auth-status" role="status">
+      <p>Đang kiểm tra liên kết...</p>
+    </div>
 
-    <p v-if="checkingToken">Đang kiểm tra liên kết...</p>
-
-    <form v-else-if="tokenValid" @submit.prevent="resetPassword">
-      <div class="mb-3">
-        <label for="new-password" class="form-label">Mật khẩu mới</label>
+    <form v-else-if="tokenValid" class="auth-form" novalidate @submit.prevent="resetPassword">
+      <div class="auth-field">
+        <label for="new-password">New password</label>
         <input
           id="new-password"
           v-model="form.newPassword"
           type="password"
-          class="form-control"
+          class="auth-input"
           autocomplete="new-password"
-          minlength="8"
+          :aria-invalid="Boolean(errors.newPassword)"
+          :aria-describedby="errors.newPassword ? 'reset-password-error' : undefined"
+          @blur="validateNewPasswordField"
+          @input="errors.newPassword && validateNewPasswordField()"
           required
         />
+        <p v-if="errors.newPassword" id="reset-password-error" class="auth-field-error" aria-live="polite">
+          {{ errors.newPassword }}
+        </p>
       </div>
 
-      <div class="mb-3">
-        <label for="password-confirmation" class="form-label">Xác nhận mật khẩu</label>
+      <div class="auth-field">
+        <label for="password-confirmation">Confirm password</label>
         <input
           id="password-confirmation"
           v-model="form.passwordConfirmation"
           type="password"
-          class="form-control"
+          class="auth-input"
           autocomplete="new-password"
+          :aria-invalid="Boolean(errors.passwordConfirmation)"
+          :aria-describedby="errors.passwordConfirmation ? 'reset-confirmation-error' : undefined"
+          @blur="validateConfirmationField"
+          @input="errors.passwordConfirmation && validateConfirmationField()"
           required
         />
+        <p v-if="errors.passwordConfirmation" id="reset-confirmation-error" class="auth-field-error" aria-live="polite">
+          {{ errors.passwordConfirmation }}
+        </p>
       </div>
 
-      <button type="submit" class="btn btn-primary" :disabled="loading">
-        {{ loading ? 'Đang cập nhật...' : 'Đặt lại mật khẩu' }}
+      <button type="submit" class="auth-submit" :disabled="loading">
+        {{ loading ? 'Đang cập nhật...' : 'RESET PASSWORD' }}
       </button>
     </form>
 
-    <router-link v-else to="/forgot-password" class="btn btn-secondary">
-      Yêu cầu liên kết mới
-    </router-link>
-  </section>
+    <div v-else class="auth-status">
+      <p>Liên kết không hợp lệ hoặc đã hết hạn.</p>
+      <router-link to="/forgot-password" class="auth-secondary-action">Yêu cầu liên kết mới</router-link>
+    </div>
+
+    <template #footer>
+      <p><router-link class="auth-inline-link" to="/login">Back to login</router-link></p>
+    </template>
+  </AuthPage>
 </template>

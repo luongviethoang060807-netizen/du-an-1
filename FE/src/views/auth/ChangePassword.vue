@@ -3,6 +3,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from '@/services/toast'
+import AuthPage from '@/components/AuthPage.vue'
+import {
+  validateNewPassword,
+  validatePasswordConfirmation,
+  validateRequired
+} from '@/helpers/authValidation'
 
 const router = useRouter()
 const { showToast } = useToast()
@@ -12,13 +18,36 @@ const form = ref({
   newPassword: '',
   passwordConfirmation: ''
 })
+// Lưu lỗi FE riêng cho mật khẩu hiện tại, mật khẩu mới và xác nhận.
+const errors = ref({ currentPassword: '', newPassword: '', passwordConfirmation: '' })
+
+// Chỉ yêu cầu có mật khẩu hiện tại; việc xác minh mật khẩu do BE thực hiện.
+const validateCurrentPasswordField = () => {
+  errors.value.currentPassword = validateRequired(form.value.currentPassword, 'mật khẩu hiện tại')
+  return !errors.value.currentPassword
+}
+
+// Kiểm tra mật khẩu mới theo giới hạn của BE.
+const validateNewPasswordField = () => {
+  errors.value.newPassword = validateNewPassword(form.value.newPassword)
+  return !errors.value.newPassword
+}
+
+// Kiểm tra trường xác nhận trùng với mật khẩu mới.
+const validateConfirmationField = () => {
+  errors.value.passwordConfirmation = validatePasswordConfirmation(
+    form.value.newPassword,
+    form.value.passwordConfirmation
+  )
+  return !errors.value.passwordConfirmation
+}
 
 // api service tự gắn Bearer token; BE xác thực phiên và mật khẩu hiện tại.
-  const changePassword = async () => {
-  if (form.value.newPassword !== form.value.passwordConfirmation) {
-    showToast('Mật khẩu xác nhận không khớp.', 'danger')
-    return
-  }
+const changePassword = async () => {
+  const isCurrentPasswordValid = validateCurrentPasswordField()
+  const isNewPasswordValid = validateNewPasswordField()
+  const isConfirmationValid = validateConfirmationField()
+  if (!isCurrentPasswordValid || !isNewPasswordValid || !isConfirmationValid) return
 
   try {
     loading.value = true
@@ -38,51 +67,73 @@ const form = ref({
 </script>
 
 <template>
-  <section class="py-4">
-    <h1>Đổi mật khẩu</h1>
-
-    <form @submit.prevent="changePassword">
-      <div class="mb-3">
-        <label for="current-password" class="form-label">Mật khẩu hiện tại</label>
+  <AuthPage title="Change password" description="Xác nhận mật khẩu hiện tại trước khi cập nhật.">
+    <!-- Form đổi mật khẩu giữ nguyên Bearer auth và payload API. -->
+    <form class="auth-form" novalidate @submit.prevent="changePassword">
+      <div class="auth-field">
+        <label for="current-password">Current password</label>
         <input
           id="current-password"
           v-model="form.currentPassword"
           type="password"
-          class="form-control"
+          class="auth-input"
           autocomplete="current-password"
+          :aria-invalid="Boolean(errors.currentPassword)"
+          :aria-describedby="errors.currentPassword ? 'current-password-error' : undefined"
+          @blur="validateCurrentPasswordField"
+          @input="errors.currentPassword && validateCurrentPasswordField()"
           required
         />
+        <p v-if="errors.currentPassword" id="current-password-error" class="auth-field-error" aria-live="polite">
+          {{ errors.currentPassword }}
+        </p>
       </div>
 
-      <div class="mb-3">
-        <label for="new-password" class="form-label">Mật khẩu mới</label>
+      <div class="auth-field">
+        <label for="new-password">New password</label>
         <input
           id="new-password"
           v-model="form.newPassword"
           type="password"
-          class="form-control"
+          class="auth-input"
           autocomplete="new-password"
-          minlength="8"
+          :aria-invalid="Boolean(errors.newPassword)"
+          :aria-describedby="errors.newPassword ? 'new-password-error' : undefined"
+          @blur="validateNewPasswordField"
+          @input="errors.newPassword && validateNewPasswordField()"
           required
         />
+        <p v-if="errors.newPassword" id="new-password-error" class="auth-field-error" aria-live="polite">
+          {{ errors.newPassword }}
+        </p>
       </div>
 
-      <div class="mb-3">
-        <label for="password-confirmation" class="form-label">Xác nhận mật khẩu mới</label>
+      <div class="auth-field">
+        <label for="password-confirmation">Confirm new password</label>
         <input
           id="password-confirmation"
           v-model="form.passwordConfirmation"
           type="password"
-          class="form-control"
+          class="auth-input"
           autocomplete="new-password"
+          :aria-invalid="Boolean(errors.passwordConfirmation)"
+          :aria-describedby="errors.passwordConfirmation ? 'password-confirmation-error' : undefined"
+          @blur="validateConfirmationField"
+          @input="errors.passwordConfirmation && validateConfirmationField()"
           required
         />
+        <p v-if="errors.passwordConfirmation" id="password-confirmation-error" class="auth-field-error" aria-live="polite">
+          {{ errors.passwordConfirmation }}
+        </p>
       </div>
 
-      <button type="submit" class="btn btn-primary" :disabled="loading">
-        {{ loading ? 'Đang cập nhật...' : 'Đổi mật khẩu' }}
+      <button type="submit" class="auth-submit" :disabled="loading">
+        {{ loading ? 'Đang cập nhật...' : 'UPDATE PASSWORD' }}
       </button>
-      <router-link to="/profile" class="btn btn-secondary ms-2">Hủy</router-link>
     </form>
-  </section>
+
+    <template #footer>
+      <p><router-link class="auth-inline-link" to="/profile">Back to profile</router-link></p>
+    </template>
+  </AuthPage>
 </template>

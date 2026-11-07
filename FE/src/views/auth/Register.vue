@@ -3,6 +3,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from '@/services/toast'
+import AuthPage from '@/components/AuthPage.vue'
+import {
+	validateEmail,
+	validateNewPassword,
+	validatePasswordConfirmation
+} from '@/helpers/authValidation'
 
 const router = useRouter()
 const { showToast } = useToast()
@@ -12,15 +18,35 @@ const form = ref({
 	password: '',
 	passwordConfirmation: ''
 })
+// Lưu lỗi FE riêng cho email, mật khẩu và trường xác nhận.
+const errors = ref({ email: '', password: '', passwordConfirmation: '' })
+
+// Kiểm tra email và trả lỗi ngay dưới trường email.
+const validateEmailField = () => {
+	errors.value.email = validateEmail(form.value.email)
+	return !errors.value.email
+}
+
+// Kiểm tra chính sách mật khẩu giống giới hạn của BE.
+const validatePasswordField = () => {
+	errors.value.password = validateNewPassword(form.value.password, 'mật khẩu')
+	return !errors.value.password
+}
+
+// So khớp mật khẩu xác nhận với mật khẩu chính.
+const validateConfirmationField = () => {
+	errors.value.passwordConfirmation = validatePasswordConfirmation(
+		form.value.password,
+		form.value.passwordConfirmation
+	)
+	return !errors.value.passwordConfirmation
+}
 
 const register = async () => {
-	// BE chỉ nhận email/password; passwordConfirmation chỉ dùng để kiểm tra ở FE.
-// BE chỉ nhận email/password; passwordConfirmation chỉ dùng để kiểm tra ở FE.
-
-	if (form.value.password !== form.value.passwordConfirmation) {
-		showToast('Mật khẩu xác nhận không khớp', 'danger')
-		return
-	}
+	const isEmailValid = validateEmailField()
+	const isPasswordValid = validatePasswordField()
+	const isConfirmationValid = validateConfirmationField()
+	if (!isEmailValid || !isPasswordValid || !isConfirmationValid) return
 
 	try {
 		loading.value = true
@@ -41,51 +67,77 @@ const register = async () => {
 </script>
 
 <template>
-	<div class="container py-4">
-		<h1>Đăng ký</h1>
-
-		<form @submit.prevent="register">
-			<div class="mb-3">
-				<label for="email" class="form-label">Email</label>
+	<AuthPage
+		title="Create account"
+		description="Tạo tài khoản Sharp Barber bằng email và mật khẩu."
+		variant="framed"
+	>
+		<!-- Dữ liệu gửi BE vẫn chỉ gồm email và mật khẩu. -->
+		<form class="auth-form" novalidate @submit.prevent="register">
+			<div class="auth-field">
+				<label for="email">Email</label>
 				<input
 					id="email"
 					v-model="form.email"
 					type="email"
-					class="form-control"
+					class="auth-input"
 					autocomplete="email"
+					:aria-invalid="Boolean(errors.email)"
+					:aria-describedby="errors.email ? 'register-email-error' : undefined"
+					@blur="validateEmailField"
+					@input="errors.email && validateEmailField()"
 					required
 				/>
+				<p v-if="errors.email" id="register-email-error" class="auth-field-error" aria-live="polite">
+					{{ errors.email }}
+				</p>
 			</div>
 
-			<div class="mb-3">
-				<label for="password" class="form-label">Mật khẩu</label>
+			<div class="auth-field">
+				<label for="password">Password</label>
 				<input
 					id="password"
 					v-model="form.password"
 					type="password"
-					class="form-control"
+					class="auth-input"
 					autocomplete="new-password"
-					minlength="8"
+					:aria-invalid="Boolean(errors.password)"
+					:aria-describedby="errors.password ? 'register-password-error' : undefined"
+					@blur="validatePasswordField"
+					@input="errors.password && validatePasswordField()"
 					required
 				/>
+				<p v-if="errors.password" id="register-password-error" class="auth-field-error" aria-live="polite">
+					{{ errors.password }}
+				</p>
 			</div>
 
-				<div class="mb-3">
-					<label for="password-confirmation" class="form-label">Xác nhận mật khẩu</label>
-					<input
-						id="password-confirmation"
-						v-model="form.passwordConfirmation"
-						type="password"
-						class="form-control"
-						autocomplete="new-password"
-						required
-					/>
-				</div>
+			<div class="auth-field">
+				<label for="password-confirmation">Confirm password</label>
+				<input
+					id="password-confirmation"
+					v-model="form.passwordConfirmation"
+					type="password"
+					class="auth-input"
+					autocomplete="new-password"
+					:aria-invalid="Boolean(errors.passwordConfirmation)"
+					:aria-describedby="errors.passwordConfirmation ? 'register-confirmation-error' : undefined"
+					@blur="validateConfirmationField"
+					@input="errors.passwordConfirmation && validateConfirmationField()"
+					required
+				/>
+				<p v-if="errors.passwordConfirmation" id="register-confirmation-error" class="auth-field-error" aria-live="polite">
+					{{ errors.passwordConfirmation }}
+				</p>
+			</div>
 
-			<button type="submit" class="btn btn-primary" :disabled="loading">
-				{{ loading ? 'Đang đăng ký...' : 'Đăng ký' }}
+			<button type="submit" class="auth-submit" :disabled="loading">
+				{{ loading ? 'Đang đăng ký...' : 'CREATE ACCOUNT' }}
 			</button>
-			<router-link to="/login" class="btn btn-secondary ms-2">Đăng nhập</router-link>
 		</form>
-	</div>
+
+		<template #footer>
+			<p>Đã có tài khoản?<router-link class="auth-inline-link" to="/login">Login</router-link></p>
+		</template>
+	</AuthPage>
 </template>

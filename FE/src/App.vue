@@ -1,66 +1,134 @@
 <script setup>
 import { RouterView, useRoute } from 'vue-router'
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { isAuthenticated } from '@/services/auth'
 import { useToast } from '@/services/toast'
 
 const checkAuth = ref(isAuthenticated())
+// Trạng thái mở menu điều hướng trên màn hình nhỏ.
+const menuOpen = ref(false)
 const route = useRoute()
-const { toast, dismissToast } = useToast()
+const { toast, showToast, dismissToast } = useToast()
+const currentYear = new Date().getFullYear()
 
 // Đồng bộ trạng thái đăng nhập để menu cập nhật sau login hoặc logout.
 watch(() => route.fullPath, () => {
   checkAuth.value = isAuthenticated()
+  menuOpen.value = false
+})
 
+// Dùng toast hệ thống cho lời chào; giữ lại thông báo khác nếu route đã tạo trước đó.
+onMounted(() => {
+  if (!toast.value) {
+    showToast('Welcome to Sharp Barber.', 'info')
+  }
 })
 </script>
 
 <template>
-  <div class="bg-dark text-light min-vh-100">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
-      <div class="container">
-        <a class="navbar-brand fw-bold" href="#">Barber Studio</a>
-        <div class="d-flex gap-3">
-          <router-link class="nav-link" to="/">Home</router-link>
-          <router-link class="nav-link" to="/">News</router-link>
-          <router-link class="nav-link" to="/">About</router-link>
-          <router-link class="nav-link" to="/catalog" v-if="checkAuth">Catalog</router-link>
-          <router-link class="nav-link" to="/login" v-if="!checkAuth">Login</router-link>
-          <router-link class="nav-link" to="/profile" v-else>Profile</router-link>
-        </div>
-      </div>
-    </nav>
+  <div class="site-shell">
+    <div class="site-sticky-stack">
+      <!-- Navbar và alert dùng chung luôn nằm cùng nhau khi cuộn trang. -->
+      <header class="site-header">
+        <nav class="site-navigation" aria-label="Điều hướng chính">
+          <router-link class="site-brand" to="/" aria-label="Sharp Barber, trang chủ">
+            SHARP BARBER
+          </router-link>
 
-    <main class="container py-4">
+          <div class="site-nav-primary" aria-label="Các mục đang được phát triển">
+            <span class="site-nav-placeholder">Services</span>
+            <span class="site-nav-placeholder">Barbers</span>
+            <span class="site-nav-placeholder">Book now</span>
+          </div>
+
+          <div class="site-nav-account">
+            <template v-if="!checkAuth">
+              <router-link class="site-nav-link" to="/login" :aria-current="route.path === '/login' ? 'page' : undefined">Login</router-link>
+              <span class="site-nav-divider" aria-hidden="true"></span>
+              <router-link class="site-nav-link" to="/register" :aria-current="route.path === '/register' ? 'page' : undefined">Register</router-link>
+            </template>
+            <router-link
+              class="site-account-button"
+              :to="checkAuth ? '/profile' : '/login'"
+              :class="{ 'is-active': checkAuth && ['/profile', '/change-password'].includes(route.path) }"
+              :aria-label="checkAuth ? 'Hồ sơ tài khoản' : 'Đăng nhập tài khoản'"
+              :title="checkAuth ? 'Hồ sơ tài khoản' : 'Đăng nhập tài khoản'"
+            >
+              <span class="site-account-icon" aria-hidden="true"></span>
+            </router-link>
+          </div>
+
+          <button
+            type="button"
+            class="site-menu-toggle"
+            :aria-expanded="menuOpen"
+            aria-controls="mobile-navigation"
+            :aria-label="menuOpen ? 'Đóng menu' : 'Mở menu'"
+            :title="menuOpen ? 'Đóng menu' : 'Mở menu'"
+            @click="menuOpen = !menuOpen"
+          >
+            <span class="site-menu-icon" :class="{ 'site-menu-icon--open': menuOpen }" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+        </nav>
+
+        <!-- Menu nhỏ toàn chiều ngang, tài khoản được đặt ở cuối danh sách. -->
+        <div v-if="menuOpen" id="mobile-navigation" class="site-mobile-menu">
+          <div class="site-mobile-menu-inner">
+            <div class="site-mobile-links" aria-label="Các mục đang được phát triển">
+              <span class="site-mobile-link site-nav-placeholder">Services</span>
+              <span class="site-mobile-link site-nav-placeholder">Barbers</span>
+              <span class="site-mobile-link site-nav-placeholder">Book now</span>
+            </div>
+            <div class="site-mobile-account">
+              <template v-if="!checkAuth">
+                <router-link class="site-mobile-link" to="/login" :aria-current="route.path === '/login' ? 'page' : undefined">Login</router-link>
+                <router-link class="site-mobile-link" to="/register" :aria-current="route.path === '/register' ? 'page' : undefined">Register</router-link>
+              </template>
+              <router-link
+                v-else
+                class="site-mobile-link"
+                to="/profile"
+                :aria-current="['/profile', '/change-password'].includes(route.path) ? 'page' : undefined"
+              >Profile</router-link>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Toast lỗi/thành công dùng chung cũng nằm trong vùng sticky. -->
       <div
         v-if="toast"
-        class="alert d-flex align-items-center justify-content-between gap-3 mb-3"
-        :class="`alert-${toast.type}`"
+        class="site-toast"
+        :class="`site-toast--${toast.type}`"
         :role="toast.type === 'danger' ? 'alert' : 'status'"
         aria-live="polite"
         aria-atomic="true"
       >
-        <span>{{ toast.message }}</span>
-        <button
-          type="button"
-          class="btn-close flex-shrink-0"
-          aria-label="Đóng thông báo"
-          @click="dismissToast"
-        ></button>
+        <span class="site-toast-copy">
+          <strong class="site-toast-label">Thông báo</strong>
+          <span class="site-toast-message">{{ toast.message }}</span>
+        </span>
+        <button type="button" class="site-toast-close" aria-label="Đóng thông báo" @click="dismissToast">
+          &times;
+        </button>
       </div>
+    </div>
+
+    <!-- Vùng hiển thị toast toàn cục và view theo route hiện tại. -->
+    <main class="site-main">
       <RouterView />
     </main>
+
+    <!-- Footer chung cho trang chủ và các màn hình tài khoản. -->
+    <footer class="site-footer">
+      <p>
+        <span>&copy; {{ currentYear }} Sharp Barber.</span>
+        <span>All rights reserved.</span>
+      </p>
+    </footer>
   </div>
 </template>
-
-<style scoped>
-.nav-link {
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-}
-
-.nav-link:hover {
-  color: #fff;
-}
-
-</style>
