@@ -327,13 +327,6 @@ a {
   padding-top: 8px;
 }
 
-.home-banner-blank {
-  min-height: 390px;
-  aspect-ratio: 2.45 / 1;
-  border-radius: 4px;
-  background: var(--color-placeholder);
-}
-
 .home-products-section {
   padding-top: 52px;
 }
@@ -689,11 +682,6 @@ a {
 
   .site-toast {
     width: min(100% - 32px, 1160px);
-  }
-
-  .home-banner-blank {
-    min-height: 230px;
-    aspect-ratio: 1.35 / 1;
   }
 
   .home-products-section {
