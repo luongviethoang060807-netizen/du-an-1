@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '@/services/toast'
 import api from '@/services/api'
+import AuthPage from '@/components/AuthPage.vue'
 
 const user = getUser() || {}
 const router = useRouter()
@@ -30,31 +31,38 @@ const handleLogout = async () => {
 </script>
 
 <template>
-	<section>
-		<h1>Thông tin cá nhân</h1>
+	<AuthPage title="Your profile" description="Thông tin tài khoản Sharp Barber.">
+		<!-- Thông tin tài khoản đang có trong session FE. -->
+		<dl class="profile-details">
+			<div class="profile-row">
+				<dt>ID</dt>
+				<dd>{{ user.id || '-' }}</dd>
+			</div>
+			<div class="profile-row">
+				<dt>Email</dt>
+				<dd>{{ user.email || '-' }}</dd>
+			</div>
+			<div class="profile-row">
+				<dt>Role</dt>
+				<dd>{{ user.role || '-' }}</dd>
+			</div>
+		</dl>
 
-		<table class="table">
-			<tbody>
-				<tr>
-					<th scope="row">ID</th>
-					<td>{{ user.id || '-' }}</td>
-				</tr>
-				<tr>
-					<th scope="row">Email</th>
-					<td>{{ user.email || '-' }}</td>
-				</tr>
-				<tr>
-					<th scope="row">Vai trò</th>
-					<td>{{ user.role || '-' }}</td>
-				</tr>
-			</tbody>
-		</table>
+		<!-- Giữ thao tác đổi mật khẩu và đăng xuất hiện có. -->
+		<div class="profile-actions">
+			<router-link to="/change-password" class="auth-submit">CHANGE PASSWORD</router-link>
+			<button
+				type="button"
+				class="auth-secondary-action auth-danger-action"
+				:disabled="loading"
+				@click="handleLogout"
+			>
+				{{ loading ? 'Đang xử lý...' : 'LOG OUT' }}
+			</button>
+		</div>
 
-		<router-link to="/change-password" class="btn btn-primary me-2">Đổi mật khẩu</router-link>
-
-		<button type="button" class="btn btn-danger" @click="handleLogout" :disabled="loading">
-            {{ loading ? 'Đang xử lý...' : 'Đăng xuất' }}
-		</button>
-		<router-link to="/" class="btn btn-secondary">Quay lại</router-link>
-	</section>
+		<template #footer>
+			<p><router-link class="auth-inline-link" to="/">Back to home</router-link></p>
+		</template>
+	</AuthPage>
 </template>

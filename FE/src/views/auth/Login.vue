@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { setAuthSession } from '@/services/auth'
 import { useToast } from '@/services/toast'
+import AuthPage from '@/components/AuthPage.vue'
+import { validateEmail, validateRequired } from '@/helpers/authValidation'
 
 const router = useRouter()
 const { showToast } = useToast()
@@ -12,9 +14,27 @@ const form = ref({
   email: '',
   password: ''
 })
+// Lưu lỗi FE theo từng trường để đặt ngay dưới input tương ứng.
+const errors = ref({ email: '', password: '' })
+
+// Kiểm tra email trước khi gửi request đăng nhập.
+const validateEmailField = () => {
+  errors.value.email = validateEmail(form.value.email)
+  return !errors.value.email
+}
+
+// Yêu cầu nhập mật khẩu; tính đúng/sai vẫn do BE xác nhận.
+const validatePasswordField = () => {
+  errors.value.password = validateRequired(form.value.password, 'mật khẩu')
+  return !errors.value.password
+}
 
 // Lưu JWT và thông tin user từ BE trước khi chuyển trang để route guard nhận diện phiên đăng nhập.
-  const fetchApiLogin = async () => {
+const fetchApiLogin = async () => {
+  const isEmailValid = validateEmailField()
+  const isPasswordValid = validatePasswordField()
+  if (!isEmailValid || !isPasswordValid) return
+
   try {
     loading.value = true
 
@@ -39,40 +59,57 @@ const form = ref({
 </script>
 
 <template>
-  <div class="container py-4">
-    <h1>Login</h1>
-
-    <form @submit.prevent="fetchApiLogin">
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
+  <AuthPage title="Login" description="Đăng nhập vào tài khoản Sharp Barber để tiếp tục.">
+    <!-- Form đăng nhập giữ nguyên endpoint và session JWT hiện có. -->
+    <form class="auth-form" novalidate @submit.prevent="fetchApiLogin">
+      <div class="auth-field">
+        <label for="email">Email</label>
         <input
           id="email"
           v-model="form.email"
           type="email"
-          class="form-control"
+          class="auth-input"
           autocomplete="email"
+          :aria-invalid="Boolean(errors.email)"
+          :aria-describedby="errors.email ? 'login-email-error' : undefined"
+          @blur="validateEmailField"
+          @input="errors.email && validateEmailField()"
           required
         />
+        <p v-if="errors.email" id="login-email-error" class="auth-field-error" aria-live="polite">
+          {{ errors.email }}
+        </p>
       </div>
 
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
+      <div class="auth-field">
+        <label for="password">Password</label>
         <input
           id="password"
           v-model="form.password"
           type="password"
-          class="form-control"
+          class="auth-input"
           autocomplete="current-password"
+          :aria-invalid="Boolean(errors.password)"
+          :aria-describedby="errors.password ? 'login-password-error' : undefined"
+          @blur="validatePasswordField"
+          @input="errors.password && validatePasswordField()"
           required
         />
+        <p v-if="errors.password" id="login-password-error" class="auth-field-error" aria-live="polite">
+          {{ errors.password }}
+        </p>
+        <div class="auth-forgot-row">
+          <router-link class="auth-inline-link" to="/forgot-password">Forgot password?</router-link>
+        </div>
       </div>
 
-      <button type="submit" class="btn btn-primary" :disabled="loading">
-        {{ loading ? 'Đang đăng nhập...' : 'Login' }}
+      <button type="submit" class="auth-submit" :disabled="loading">
+        {{ loading ? 'Đang đăng nhập...' : 'LOGIN' }}
       </button>
-      <router-link to="/forgot-password" class="d-block mt-2">Quên mật khẩu?</router-link>
-      <p>Chưa có tài khoản </p>
-      <router-link to="/register" class="btn btn-secondary">Đăng ký</router-link>
     </form>
-  </div>
+
+    <template #footer>
+      <p>Chưa có tài khoản?<router-link class="auth-inline-link" to="/register">Register</router-link></p>
+    </template>
+  </AuthPage>
 </template>
