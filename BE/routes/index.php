@@ -17,6 +17,34 @@ switch ($action) {
         (new HomeController)->check();
         break;
 
+    // Bộ api auth ==========================
+    case 'api-register':
+        (new AuthController)->register();
+        break;
+
+    case 'api-verify-email':
+        (new AuthController)->verifyEmail();
+        break;
+
+    case 'api-forgot-password':
+        (new AuthController)->forgotPassword();
+        break;
+
+    case 'api-reset-password':
+        (new AuthController)->resetPassword();
+        break;
+
+    case 'reset-password-bridge':
+        (new AuthController)->showPasswordResetBridge();
+        break;
+
+    case 'api-change-password':
+        // Middleware kiểm tra Bearer JWT và trả payload đã xác minh; claim `sub` là ID user.
+        $authPayload = (new AuthMiddleware())->requireAuth();
+        // Truyền danh tính từ token xuống controller, không nhận user ID do client tự gửi.
+        (new AuthController)->changePassword($authPayload);
+        break;
+
     case 'api-login':
         (new AuthController)->login();
         break;
@@ -25,6 +53,7 @@ switch ($action) {
         (new AuthController)->logout();
         break;
 
+
     // API cần xác thực người dùng
     case 'api-posts':
         (new AuthMiddleware())->requireAuth();
@@ -32,8 +61,18 @@ switch ($action) {
         break;
 
     case 'api-products':
-        (new AuthMiddleware())->requireAuth();
+        // (new AuthMiddleware())->requireAuth();
         (new ProductController)->index();
+        break;
+
+    // API lấy danh sách danh mục sản phẩm
+    case 'api-categories':
+    (new CategoryController)->index();
+    break;
+
+    // API lấy danh sách banner
+    case 'api-banners':
+        (new BannerController)->index();
         break;
 
     // API test cho thằng mặt cặc Hoàng Vinh

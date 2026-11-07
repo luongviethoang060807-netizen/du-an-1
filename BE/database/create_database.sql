@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `role` ENUM('admin', 'user') NOT NULL DEFAULT 'user',
   `is_active` TINYINT(1) NOT NULL DEFAULT 0,
   `verification_token` CHAR(64) DEFAULT NULL,
+  `verification_expires_at` DATETIME DEFAULT NULL,
   `password_reset_token` CHAR(64) DEFAULT NULL,
   `password_reset_expires_at` DATETIME DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

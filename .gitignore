@@ -13,6 +13,7 @@ coverage/
 
 # PHP / backend dependency and cache
 BE/vendor/
+/vendor/
 BE/cache/
 BE/public/dist/
 
