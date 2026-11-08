@@ -31,6 +31,28 @@ class ProductController{
         ]);
     }
 
+    /**
+     * Trả về chi tiết sản phẩm theo slug, gồm ảnh thumbnail và album ảnh.
+     * Thiếu slug trả HTTP 400; không có sản phẩm trả HTTP 404.
+     */
+    public function detail()
+    {
+        $slug = $_GET['slug'] ?? null;
+        if (!is_string($slug) || trim($slug) === '' || strlen(trim($slug)) > 255) {
+            response_json(['status' => 'error', 'message' => 'Slug sản phẩm không hợp lệ'], 400);
+        }
+
+        $product = $this->product->getBySlug(trim($slug));
+        if ($product === null) {
+            response_json(['status' => 'error', 'message' => 'Không tìm thấy sản phẩm'], 404);
+        }
+
+        response_json([
+            'status' => 'success',
+            'product' => $product,
+        ]);
+    }
+
     //test mock data
 
     public function camChim(){

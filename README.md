@@ -79,9 +79,17 @@ du-an-1/
 Get-Content -Raw .\BE\database\create_database.sql | mysql --host=localhost --port=3306 --user=root
 ```
 
-File [BE/database/create_database.sql](BE/database/create_database.sql) là file SQL duy nhất cho backend. Nó tạo database `du-an-1`, các bảng `users`, `categories`, `products` và dữ liệu sản phẩm mẫu. Cấu hình kết nối mặc định là `localhost:3306`, user `root`, mật khẩu trống, khớp với `BE/configs/env.php`. Máy cần có lệnh `mysql` trong `PATH` (có thể mở terminal từ Laragon nếu PowerShell không nhận lệnh). Không cần import bằng phpMyAdmin.
+File [BE/database/create_database.sql](BE/database/create_database.sql) dùng để khởi tạo database `du-an-1` cùng các bảng và sản phẩm mẫu ban đầu. Cấu hình kết nối mặc định là `localhost:3306`, user `root`, mật khẩu trống, khớp với `BE/configs/env.php`. Máy cần có lệnh `mysql` trong `PATH` (có thể mở terminal từ Laragon nếu PowerShell không nhận lệnh). Không cần import bằng phpMyAdmin.
 
-Khi có thay đổi cấu trúc hoặc dữ liệu khởi tạo, cập nhật file SQL duy nhất này rồi chạy lại cùng lệnh. Các lệnh tạo bảng và thêm dữ liệu mẫu được viết để có thể chạy lặp lại. Nếu MySQL có mật khẩu, thêm `--password` để MySQL hỏi mật khẩu khi chạy.
+Với database đã khởi tạo, chạy các file migration cần thiết trong `BE/database/migrations/` trước, sau đó chạy seeder tương ứng trong `BE/database/seed/`. Ví dụ cập nhật bộ đếm và ảnh slide sản phẩm:
+
+```powershell
+Get-Content -Raw .\BE\database\migrations\20261108_add_product_view_sales_counts.sql | mysql --host=localhost --port=3306 --user=root
+Get-Content -Raw .\BE\database\migrations\20261108_create_product_images_table.sql | mysql --host=localhost --port=3306 --user=root
+Get-Content -Raw .\BE\database\seed\products.sql | mysql --host=localhost --port=3306 --user=root
+```
+
+Không cần chạy lại `create_database.sql` để cập nhật database hiện có. Các migration và seeder được viết để có thể chạy lặp lại. Nếu MySQL có mật khẩu, thêm `--password` để MySQL hỏi mật khẩu khi chạy.
 
 ### 2. Backend
 Mở bằng Laragon hoặc local PHP server:

@@ -60,6 +60,11 @@ switch ($action) {
         (new PostController)->index();
         break;
 
+    // API lấy chi tiết sản phẩm theo slug, không yêu cầu đăng nhập.
+    case 'api-product-detail':
+        (new ProductController)->detail();
+        break;
+
     case 'api-products':
         // (new AuthMiddleware())->requireAuth();
         (new ProductController)->index();
