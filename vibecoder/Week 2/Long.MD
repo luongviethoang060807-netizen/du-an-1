@@ -45,3 +45,20 @@ Branch cập nhật ngày 2026-11-07: `feature/design-master-layout+auth-ui`
 - Mock lỗi HTTP 422 từ login vẫn hiện message BE trong toast “Thông báo”.
 - Kiểm tra sticky sau khi cuộn 600px: sticky stack ở `top: 0`; toast vẫn nằm trong stack.
 - Border auth card có ở desktop; mobile bỏ border theo thiết kế.
+
+## Cập nhật nhánh `long/feature-update-database+BE-api` - 2026-11-08
+
+### Database và sản phẩm
+- Tạo migration bổ sung `created_at`/`updated_at` còn thiếu cho `categories`, `products`, `banners`; tạo bảng `product_images` cho album; thêm `view_count` và `sales_count` cho `products`.
+- Tạo seeder sản phẩm: đặt lượt xem/lượt bán mẫu cho 24 sản phẩm hiện có và thêm ảnh thumbnail làm ảnh slide đầu tiên trong album của từng sản phẩm; seeder chạy lặp không nhân bản ảnh.
+- Chạy migrations và seeder trên database hiện có, không chạy lại `create_database.sql`. Xác nhận 24/24 sản phẩm có bản ghi album, tổng lượt xem mẫu 68.350 và tổng lượt bán mẫu 4.258.
+- Cập nhật README hướng dẫn chạy migration và seeder trên database đã khởi tạo.
+
+### API chi tiết sản phẩm
+- Thêm endpoint public `GET ?action=api-product-detail&slug=<slug>`; trả sản phẩm theo slug, `category_name`, thumbnail `image`, bộ đếm và mảng `images` được sắp theo `sort_order`.
+- Slug thiếu/không hợp lệ trả HTTP 400; sản phẩm không tồn tại trả HTTP 404. Giữ nguyên endpoint `api-products`; endpoint này không lấy album.
+- Gọi thử với slug `sap-vuot-toc-hanz-de-fuko-claymation`: response thành công, có `category_name`, `view_count`, `sales_count` và một ảnh album.
+
+### Kiểm tra và lưu ý
+- PHP lint pass cho router, `ProductController` và model `Product`; `git diff --check` pass.
+- Thư mục `BE/assets/uploads/` hiện chỉ có `default.jpg`; các ảnh sản phẩm/thumbnail đang là đường dẫn trong database, cần thêm file ảnh thực để hiển thị.
