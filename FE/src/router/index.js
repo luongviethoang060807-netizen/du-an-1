@@ -1,4 +1,5 @@
 import CatalogView from "../views/products/catalog.vue"; // Import trang danh sách sản phẩm
+import ProductDetailView from "../views/products/ProductDetail.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import TestView from "../views/TestView.vue";
@@ -32,6 +33,12 @@ const routes = [
     path: "/catalog", // Đường dẫn URL để truy cập trang Catalog
     name: "catalog", // Tên định danh của route
     component: CatalogView, // Component giao diện được hiển thị khi truy cập
+  },
+  // Trang chi tiết sản phẩm hiển thị response sản phẩm và comments, không yêu cầu đăng nhập.
+  {
+    path: "/product-detail/:slug",
+    name: "product-detail",
+    component: ProductDetailView,
   },
 
   {

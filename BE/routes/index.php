@@ -65,6 +65,11 @@ switch ($action) {
         (new ProductController)->detail();
         break;
 
+    // API lấy danh sách bình luận theo slug sản phẩm, không yêu cầu đăng nhập.
+    case 'api-product-comments':
+        (new CommentController)->byProductSlug();
+        break;
+
     case 'api-products':
         // (new AuthMiddleware())->requireAuth();
         (new ProductController)->index();
