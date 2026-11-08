@@ -62,3 +62,21 @@ Branch cập nhật ngày 2026-11-07: `feature/design-master-layout+auth-ui`
 ### Kiểm tra và lưu ý
 - PHP lint pass cho router, `ProductController` và model `Product`; `git diff --check` pass.
 - Thư mục `BE/assets/uploads/` hiện chỉ có `default.jpg`; các ảnh sản phẩm/thumbnail đang là đường dẫn trong database, cần thêm file ảnh thực để hiển thị.
+
+## Cập nhật nhánh `long/feature-comments-be` - 2026-11-08
+
+### Database và migration runner
+- Tạo migration `20261108_create_comments_table.sql`; comment liên kết với product và user bằng khóa ngoại `ON DELETE CASCADE`, có timestamp và index phục vụ truy vấn theo sản phẩm.
+- Tạo seeder comments mẫu có kiểm tra trùng để có thể chạy lặp; giữ nguyên `create_database.sql` vì database đã được khởi tạo trước đó.
+- Chạy migration và seeder trên database local `du-an-1`; xác nhận có 4 comments mẫu, chạy lại vẫn giữ 4 dòng và cả hai khóa ngoại đều cascade.
+- Thêm `BE/database/run.php` để chạy migrations theo thứ tự tên file, ghi nhận migration đã áp dụng; seeder chỉ chạy khi truyền `--seed`. Đã kiểm tra cú pháp PHP, chưa chạy runner này trên database.
+
+### API comments
+- Thêm model `Comment`, controller `CommentController` và endpoint public `GET ?action=api-product-comments&slug=<slug>&page=<page>&per_page=<per_page>`.
+- Endpoint trả comments mới nhất trước, có metadata phân trang; join `users` để trả thêm `email` và `role`. Sản phẩm không tồn tại trả HTTP 404; tham số không hợp lệ trả HTTP 400.
+- Gọi thử với slug `sap-vuot-toc-hanz-de-fuko-claymation`: HTTP 200, trả đúng comment và pagination. Lưu ý endpoint public hiện trả email người bình luận.
+
+### FE ProductDetail
+- Thêm helper `FE/src/helpers/dd.js` để định dạng response thành JSON dễ đọc.
+- Thêm route `/product-detail/:slug` và trang `ProductDetail.vue`, gọi hai endpoint chi tiết sản phẩm/comments rồi in nguyên response; chưa dựng UI sản phẩm.
+- `npm --prefix FE run build` pass; PHP lint pass cho model/controller/router comments.
