@@ -80,3 +80,15 @@ Branch cập nhật ngày 2026-11-07: `feature/design-master-layout+auth-ui`
 - Thêm helper `FE/src/helpers/dd.js` để định dạng response thành JSON dễ đọc.
 - Thêm route `/product-detail/:slug` và trang `ProductDetail.vue`, gọi hai endpoint chi tiết sản phẩm/comments rồi in nguyên response; chưa dựng UI sản phẩm.
 - `npm --prefix FE run build` pass; PHP lint pass cho model/controller/router comments.
+
+## Cập nhật công việc BE - 2026-11-09
+
+### API top 5 sản phẩm
+- Thêm endpoint public `GET ?action=api-products-top&sort_by=views|sales`, trả tối đa 5 sản phẩm xếp giảm dần theo `view_count` hoặc `sales_count`.
+- Nếu không truyền `sort_by`, mặc định chọn `sales`; response thành công có `sort_by` để client biết tiêu chí đang dùng. Giá trị không hợp lệ trả HTTP 400.
+- Thêm `Product::getTop($sortBy = 'sales')`; tên cột ORDER BY giới hạn bằng allowlist.
+- Kiểm tra PHP lint và gọi thử API local: cả hai tiêu chí trả đúng 5 sản phẩm theo thứ tự; đầu vào sai trả HTTP 400.
+
+### Mặc định phân trang comments
+- Đặt mặc định trực tiếp trong `Comment::getByProductSlug`: `page = 1`, `perPage = 10`, đồng bộ với API controller.
+- PHP lint cho `Comment.php` pass.

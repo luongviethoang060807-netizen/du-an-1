@@ -8,11 +8,11 @@ class Comment extends BaseModel
      * Lấy một trang bình luận theo slug sản phẩm.
      *
      * @param string $productSlug Slug của sản phẩm cần lấy bình luận.
-     * @param int $page Trang hiện tại, bắt đầu từ 1.
-     * @param int $perPage Số bình luận tối đa trong một trang.
+    * @param int $page Trang hiện tại, bắt đầu từ 1 (mặc định là 1).
+    * @param int $perPage Số bình luận tối đa trong một trang (mặc định là 10).
      * @return array|null Dữ liệu bình luận và phân trang, hoặc null nếu không có sản phẩm.
      */
-    public function getByProductSlug(string $productSlug, int $page, int $perPage): ?array
+    public function getByProductSlug(string $productSlug, int $page = 1, int $perPage = 10): ?array
     {
         $productStatement = $this->pdo->prepare(
             'SELECT `id` FROM `products` WHERE `slug` = :slug LIMIT 1'

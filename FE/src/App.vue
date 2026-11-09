@@ -35,7 +35,12 @@ onMounted(() => {
             SHARP BARBER
           </router-link>
 
-          <div class="site-nav-primary" aria-label="Các mục đang được phát triển">
+          <div class="site-nav-primary" aria-label="Điều hướng cửa hàng">
+            <router-link
+              class="site-nav-link site-nav-catalog"
+              to="/catalog"
+              :aria-current="route.path === '/catalog' ? 'page' : undefined"
+            >Catalog</router-link>
             <span class="site-nav-placeholder">Services</span>
             <span class="site-nav-placeholder">Barbers</span>
             <span class="site-nav-placeholder">Book now</span>
@@ -78,7 +83,12 @@ onMounted(() => {
         <!-- Menu nhỏ toàn chiều ngang, tài khoản được đặt ở cuối danh sách. -->
         <div v-if="menuOpen" id="mobile-navigation" class="site-mobile-menu">
           <div class="site-mobile-menu-inner">
-            <div class="site-mobile-links" aria-label="Các mục đang được phát triển">
+            <div class="site-mobile-links" aria-label="Điều hướng cửa hàng">
+              <router-link
+                class="site-mobile-link site-mobile-catalog"
+                to="/catalog"
+                :aria-current="route.path === '/catalog' ? 'page' : undefined"
+              >Catalog</router-link>
               <span class="site-mobile-link site-nav-placeholder">Services</span>
               <span class="site-mobile-link site-nav-placeholder">Barbers</span>
               <span class="site-mobile-link site-nav-placeholder">Book now</span>
