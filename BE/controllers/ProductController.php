@@ -32,6 +32,29 @@ class ProductController{
     }
 
     /**
+     * Lấy tối đa 5 sản phẩm được xem nhiều nhất hoặc bán nhiều nhất.
+     * Mặc định sắp xếp theo lượt bán; sort_by sai trả HTTP 400.
+     */
+    public function top()
+    {
+        $sortBy = $_GET['sort_by'] ?? 'sales';
+        if (!is_string($sortBy) || !in_array($sortBy, ['views', 'sales'], true)) {
+            response_json([
+                'status' => 'error',
+                'message' => 'sort_by phải là views hoặc sales',
+            ], 400);
+        }
+
+        $products = $this->product->getTop($sortBy);
+
+        response_json([
+            'status' => 'success',
+            'sort_by' => $sortBy,
+            'products' => $products,
+        ]);
+    }
+
+    /**
      * Trả về chi tiết sản phẩm theo slug, gồm ảnh thumbnail và album ảnh.
      * Thiếu slug trả HTTP 400; không có sản phẩm trả HTTP 404.
      */

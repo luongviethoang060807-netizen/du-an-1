@@ -67,6 +67,33 @@ class Product extends BaseModel
     }
 
     /**
+     * Lấy tối đa 5 sản phẩm xếp theo lượt xem hoặc lượt bán.
+     *
+     * @param string $sortBy Tiêu chí xếp hạng: views hoặc sales
+     * @return array Danh sách tối đa 5 sản phẩm
+     */
+    public function getTop($sortBy = 'sales')
+    {
+        // Chỉ cho phép hai cột đã quy định để không đưa tên cột từ request vào SQL.
+        $sortColumns = [
+            'views' => '`products`.`view_count`',
+            'sales' => '`products`.`sales_count`',
+        ];
+        $sortColumn = $sortColumns[$sortBy] ?? $sortColumns['sales'];
+
+        $sql = "SELECT `products`.*, `categories`.`name` AS `category_name`
+                FROM `products`
+                LEFT JOIN `categories` ON `products`.`category_id` = `categories`.`id`
+                ORDER BY {$sortColumn} DESC, `products`.`id` DESC
+                LIMIT 5";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Lấy thông tin sản phẩm theo slug kèm danh sách ảnh album.
      *
      * @param string $slug Slug duy nhất của sản phẩm

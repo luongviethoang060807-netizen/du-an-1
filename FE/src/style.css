@@ -115,8 +115,7 @@ a {
 }
 
 .site-nav-link:hover,
-.auth-inline-link:hover,
-.home-view-all:hover {
+.auth-inline-link:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -132,6 +131,26 @@ a {
 .site-mobile-link.router-link-exact-active,
 .site-mobile-link[aria-current='page'] {
   background: #f3f4f5;
+}
+
+.site-mobile-account .site-mobile-link[aria-current='page'] {
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+.site-nav-catalog.router-link-exact-active {
+  background: transparent;
+  color: #0c1014;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+.site-mobile-catalog[aria-current='page'] {
+  padding-left: 8px;
+  background: #0c1014;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .site-nav-divider {
@@ -345,12 +364,6 @@ a {
   font-size: 32px;
   font-weight: 400;
   line-height: 1.2;
-}
-
-.home-view-all {
-  color: var(--color-ink);
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .home-products-blank {

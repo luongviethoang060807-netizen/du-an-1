@@ -65,6 +65,11 @@ switch ($action) {
         (new ProductController)->detail();
         break;
 
+    // API lấy top 5 sản phẩm theo lượt xem hoặc lượt bán, không yêu cầu đăng nhập.
+    case 'api-products-top':
+        (new ProductController)->top();
+        break;
+
     // API lấy danh sách bình luận theo slug sản phẩm, không yêu cầu đăng nhập.
     case 'api-product-comments':
         (new CommentController)->byProductSlug();
